@@ -1,0 +1,45 @@
+codigo_empresa;tipo_colaborador;cadastro_colaborador;data_afastamento;hora_afastamento;data_termino_afastamento;hora_termino_afastamento;data_termino_previsto;situacao_afastamento;causa_demissao;dias_justificados;observacao_afastamento;classificacao_internacional_doencas;nome_atendente;orgao_classe;registro_conselho_profissional;uf_conselho_profissional;motivo_afastamento
+
+SELECT DISTINCT
+(
+    NVL(TO_CHAR( /* CODIGO_EMPRESA as-of na data do afastamento */
+        (SELECT o.COD_EMP
+           FROM VH_EST_ORG_CONTRATO_AVT o
+          WHERE o.COD_CONTRATO = AF.COD_CONTRATO
+            AND o.DATA_INI_ORG <= AF.DATA_INICIO
+            AND NVL(o.DATA_FIM_ORG, DATE '9999-12-31') >= AF.DATA_INICIO
+          ORDER BY o.DATA_INI_ORG DESC, NVL(o.DATA_FIM_ORG, DATE '9999-12-31') DESC
+          FETCH FIRST 1 ROW ONLY)
+    ), '') || ';' ||
+    '1' || ';' ||                                                   -- TIPO_COLABORADOR
+    NVL(TO_CHAR(AF.COD_CONTRATO), '') || ';' ||                     -- CADASTRO_COLABORADOR
+    NVL(TO_CHAR(AF.DATA_INICIO, 'DD/MM/YYYY'), '') || ';' ||        -- DATA_AFASTAMENTO
+    NVL(TRIM(AF.HORAS_AFASTAMENTO), '') || ';' ||                   -- HORA_AFASTAMENTO (sem normalizar)
+    NVL(TO_CHAR(AF.DATA_FIM, 'DD/MM/YYYY'), '') || ';' ||           -- DATA_TERMINO_AFASTAMENTO
+    '' || ';' ||                                                    -- HORA_TERMINO_AFASTAMENTO (NULL)
+    NVL(TO_CHAR(AF.DATA_FIM_FRE, 'DD/MM/YYYY'), '') || ';' ||       -- DATA_TERMINO_PREVISTO
+    NVL(TO_CHAR(AF.COD_MOTIVO), '') || ';' ||                       -- SITUACAO_AFASTAMENTO
+    NVL(TO_CHAR( /* CAUSA_DEMISSAO as-of na data do afastamento */
+        (SELECT c.COD_DEMISSAO
+           FROM V_DADOS_CONTRATO_AVT c
+          WHERE c.COD_CONTRATO = AF.COD_CONTRATO
+            AND c.DATA_ADMISSAO <= AF.DATA_INICIO
+            AND NVL(c.DATA_DEMISSAO, DATE '9999-12-31') >= AF.DATA_INICIO
+          ORDER BY c.DATA_ADMISSAO DESC, NVL(c.DATA_DEMISSAO, DATE '9999-12-31') DESC
+          FETCH FIRST 1 ROW ONLY)
+    ), '') || ';' ||
+    NVL(TO_CHAR(GREATEST(TRUNC(AF.DATA_FIM) - TRUNC(AF.DATA_INICIO) + 1, 0)), '') || ';' || -- DIAS_JUSTIFICADOS
+    '' || ';' ||                                                    -- OBSERVACAO_AFASTAMENTO (NULL)
+    NVL(AF.COD_CID_10, '') || ';' ||                                -- CLASSIFICACAO_INT_DOENCAS
+    NVL(PS.NOME_PESSOA, '') || ';' ||                               -- NOME_ATENDENTE (sem sanitizar para não alterar dados)
+    '' || ';' ||                                                    -- ORGAO_CLASSE
+    '' || ';' ||                                                    -- REGISTRO_CONSELHO_PROFISSIONAL
+    '' || ';' ||                                                    -- UF_CONSELHO_PROFISSIONAL
+    ''                                                              -- MOTIVO_AFASTAMENTO
+) AS LINHA_UNICA
+FROM RHFP0306 AF
+LEFT JOIN PESSOA PS
+       ON AF.COD_PESSOA = PS.COD_PESSOA
+
+ORA-01013: o usuário solicitou o cancelamento da operação atual
+

@@ -1,0 +1,6 @@
+codigo_empresa;tipo_colaborador;cadastro_colaborador;data_alteracao;codigo_vinculo
+
+FROM V_DADOS_CONTRATO_AVT CT
+ORDER BY 1
+
+ORA-00900: instrução SQL inválida

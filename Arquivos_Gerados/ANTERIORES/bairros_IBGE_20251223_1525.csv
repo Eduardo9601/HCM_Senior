@@ -1,0 +1,17 @@
+CODIGO_CIDADE;NOME_CIDADE;COD_UF;CODIGO_BAIRRO;NOME_BAIRRO;CEP_BAIRRO
+
+FROM pessoa_fisica pf
+LEFT JOIN grz_folha.munibge m
+       ON UPPER(m.nome_munic) = UPPER(pf.nome_munic)
+      AND m.cod_uf = pf.cod_uf
+WHERE pf.cod_munic > 0
+GROUP BY
+    pf.nome_munic,
+    pf.cod_uf,
+    pf.cod_bairro,
+    pf.nome_bairro,
+    pf.cep,
+    m.cod_ibge
+ORDER BY 4
+
+ORA-00900: instrução SQL inválida

@@ -1,0 +1,411 @@
+Linha 1588: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 1592: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 1598: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 1608: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 1621: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 1628: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 1631: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 1634: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 1657: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 1660: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 1664: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 1665: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 1672: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 1673: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 1679: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 1688: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2029: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2030: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2031: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2032: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2033: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2034: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2036: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2037: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2038: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2040: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2041: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2042: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2044: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2046: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2047: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2048: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2049: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2050: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2051: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2053: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2054: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2055: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2057: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2058: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2059: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2060: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2061: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2063: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2066: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2067: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2068: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2069: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2070: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2071: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2072: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2073: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2074: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2076: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2078: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2079: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2080: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2082: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2083: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2085: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2086: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2087: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2089: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2090: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2091: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2092: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2094: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 2095: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 5571: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 5594: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 5625: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 10950: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 10953: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 10956: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 10958: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 10960: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 10962: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 10967: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 10972: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 10975: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 10978: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 10980: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 13265: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 13266: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 13267: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 13268: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 13269: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 13270: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 13271: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 13273: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 13274: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 13275: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 13276: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 13277: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 13278: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 13280: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 13281: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 13282: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 13283: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 13284: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 13285: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 13286: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 13288: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 13289: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 13290: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 13291: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15834: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15835: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15836: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15837: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15838: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15839: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15840: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15842: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15843: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15844: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15846: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15847: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15849: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15850: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15852: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15853: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15854: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15855: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15856: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15857: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15858: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15859: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15860: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15861: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15863: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15864: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15865: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15866: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15867: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15868: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15869: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15870: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15871: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15872: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15874: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 15875: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 26434: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 26436: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 26437: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 26438: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 26440: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 26442: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 26443: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 26445: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 26447: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28790: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 28811: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 28831: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 28924: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28925: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28926: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28927: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28928: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28930: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28931: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28934: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28935: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28936: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28938: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28939: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28940: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28941: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28942: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28943: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28944: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28945: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28947: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28949: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28951: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28952: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28954: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28955: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28956: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28959: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28960: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28961: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28963: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28964: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28966: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28967: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28968: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28969: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28972: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28974: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28975: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28976: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28977: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 28978: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 30751: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 30753: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 30755: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 33734: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 33745: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 33746: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 33747: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 33749: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 33751: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 33752: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 33755: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 33760: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 33762: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 33766: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 33771: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 33774: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 33775: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 33776: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 33777: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 33805: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 33809: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 33810: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 33811: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 33812: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 33820: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 33824: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 33825: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 37533: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 37534: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 37535: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 37536: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 37537: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 37538: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 37539: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 37540: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 37541: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 37542: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 37543: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 37544: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 37545: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 39683: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 39684: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 39688: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 39689: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 39694: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 39699: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 39703: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 39705: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 39706: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 39712: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 39717: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 39718: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 39719: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 39721: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 39722: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 39724: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 39726: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 39728: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 39731: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 39735: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 39737: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 40124: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 40125: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 40130: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 40131: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 40134: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 40138: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 40465: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 40506: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 40520: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 40548: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 40556: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 40562: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 40580: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 40592: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 40602: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 41000: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 41001: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 41004: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 41006: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 41009: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 41010: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 47623: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 47624: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 47626: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 47627: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 47631: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 47632: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 47919: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 47921: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 47925: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 48301: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 48303: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 48323: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 48498: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 49258: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 49260: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 49264: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 50223: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 50229: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 50231: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 50232: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 50240: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 50243: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 50633: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 50648: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 50658: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 51650: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 51663: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 51673: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 52639: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 52640: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 52642: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 52646: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 52649: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 52651: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 52653: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 52655: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 52656: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 52657: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 52660: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 52663: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 52665: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 53328: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 53333: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 53339: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 54017: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 54019: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 54025: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 54240: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 54243: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 54253: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 54876: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 54879: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 54883: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 55045: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 55077: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 55123: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 55256: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 55258: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 55271: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 55275: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 55295: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 57945: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 57951: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 57954: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 57978: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 57981: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 57984: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 60001: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 60029: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 60044: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 60952: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 60968: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 60979: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 62147: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 62172: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 62231: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 62652: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 62657: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 62660: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 63808: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 63818: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 63822: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 63833: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 63840: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 63852: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 63857: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 63869: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 63881: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 63884: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 63887: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 63890: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 66782: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 66784: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 66786: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 70207: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 70213: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 70221: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 78882: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 78889: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 78896: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 78901: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 83474: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 83481: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 83485: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 90771: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 90774: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 101509: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 101513: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 101516: ORA-00001: unique constraint (SENIOR_RH.CP_R040FEV) violated
+Linha 131657: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 131667: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 131679: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 131682: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 132805: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 132806: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 132808: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 132809: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 137908: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 137909: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 137915: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 137916: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 144191: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 144205: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 144206: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 144207: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 146733: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 146743: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 146751: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 146754: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 158501: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 158507: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 158508: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 158509: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 163267: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
+Linha 163268: ORA-02291: integrity constraint (SENIOR_RH.IR_R040FEV_004) violated - parent key not found
