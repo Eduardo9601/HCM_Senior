@@ -1,108 +1,182 @@
-/*=== SQL 1026 - HISTÓRICO DE CATEGORIA SEFIP ===*/
-
-/*VERSÃO DEFINITIVA*/
-
-
-
-/*=== SQL 1026 - HISTÓRICO DE CATEGORIA SEFIP (COM DATA CORTE) ===*/
+/*=== 1026 - HISTÓRICO DE CATEGORIA SEFIP ===*/
+/* Regra:
+   - Data vem da SEFIP (não muda)
+   - Categoria vem da SEFIP
+   - Replica para cada empresa do contrato
+   - Sem inventar datas novas
+*/
 
 WITH
 PARAM AS (
-  SELECT DATE '2026-01-19' AS DT_CORTE
-  FROM DUAL
+  SELECT DATE '2026-04-23' AS DT_CORTE FROM DUAL
 ),
 
-/* contratos que "existem" no lote importado (admitidos até a data de corte) */
 CONTRATOS_OK AS (
   SELECT A.COD_CONTRATO
     FROM RHFP0300 A
     CROSS JOIN PARAM P
    GROUP BY A.COD_CONTRATO, P.DT_CORTE
-  HAVING MIN(TRUNC(NVL(A.DATA_INICIO, DATE '1900-01-01'))) <= P.DT_CORTE
+  HAVING MIN(TRUNC(NVL(A.DATA_AVANCO, A.DATA_INICIO))) < P.DT_CORTE
 ),
 
-linhas AS (
-  /* 1) Histórico (primeiro registro + quando muda) */
-  SELECT x.cod_contrato,
-         x.data_historico     AS dt_alt,
-         x.cod_categoria_trab AS categoria_sefip
-    FROM (
-          SELECT h.cod_contrato,
-                 h.data_historico,
-                 h.cod_categoria_trab,
-                 LAG(h.cod_categoria_trab) OVER(
-                   PARTITION BY h.cod_contrato
-                   ORDER BY h.data_historico
-                 ) AS categ_anterior
-            FROM rhfp0301 h
-            JOIN CONTRATOS_OK ok
-              ON ok.cod_contrato = h.cod_contrato
-         ) x
-   WHERE x.categ_anterior IS NULL
-      OR x.cod_categoria_trab <> x.categ_anterior
+/* SEFIP - HISTÓRICO REAL */
+SEFIP_BASE AS (
+  SELECT DISTINCT
+         H.COD_CONTRATO,
+         TRUNC(H.DATA_HISTORICO) AS DT_ALT,
+         H.COD_CATEGORIA_TRAB AS CATEGORIA_SEFIP
+    FROM RHFP0301 H
+    JOIN CONTRATOS_OK OK
+      ON OK.COD_CONTRATO = H.COD_CONTRATO
+   WHERE H.DATA_HISTORICO IS NOT NULL
+     AND H.COD_CATEGORIA_TRAB IS NOT NULL
+     AND TRUNC(H.DATA_HISTORICO) < (SELECT DT_CORTE FROM PARAM)
 
   UNION ALL
 
-  /* 2) Atual (somente contratos SEM histórico) */
-  SELECT a.cod_contrato,
-         a.data_inicio        AS dt_alt,
-         a.cod_categoria_trab AS categoria_sefip
-    FROM rhfp0300 a
-    JOIN CONTRATOS_OK ok
-      ON ok.cod_contrato = a.cod_contrato
-   WHERE NOT EXISTS (
-         SELECT 1
-           FROM rhfp0301 h
-          WHERE h.cod_contrato = a.cod_contrato
-   )
+  /* ADMISSÃO - somente se não tiver histórico */
+  SELECT A.COD_CONTRATO,
+         TRUNC(A.DATA_INICIO) AS DT_ALT,
+         A.COD_CATEGORIA_TRAB AS CATEGORIA_SEFIP
+    FROM RHFP0300 A
+    JOIN CONTRATOS_OK OK
+      ON OK.COD_CONTRATO = A.COD_CONTRATO
+   WHERE A.DATA_INICIO IS NOT NULL
+     AND A.COD_CATEGORIA_TRAB IS NOT NULL
+     AND TRUNC(A.DATA_INICIO) < (SELECT DT_CORTE FROM PARAM)
+     AND NOT EXISTS (
+           SELECT 1
+             FROM RHFP0301 H
+            WHERE H.COD_CONTRATO = A.COD_CONTRATO
+         )
+),
+
+/* REMOVE REPETIÇÃO DE CATEGORIA SEGUIDA */
+SEFIP_LIMPA AS (
+  SELECT X.*
+    FROM (
+          SELECT S.*,
+                 LAG(S.CATEGORIA_SEFIP) OVER (
+                   PARTITION BY S.COD_CONTRATO
+                   ORDER BY S.DT_ALT
+                 ) AS ANT
+            FROM SEFIP_BASE S
+         ) X
+   WHERE X.ANT IS NULL
+      OR X.CATEGORIA_SEFIP <> X.ANT
+),
+
+/* EMPRESAS DO CONTRATO */
+EMPRESAS AS (
+  SELECT DISTINCT
+         O.COD_CONTRATO,
+         ORG.COD_NIVEL2 AS CODIGO_EMPRESA
+    FROM RHFP0310 O
+    JOIN RHFP0401 ORG
+      ON ORG.COD_ORGANOGRAMA = O.COD_ORGANOGRAMA
+   WHERE ORG.COD_NIVEL2 IS NOT NULL
+),
+
+/* CRUZAMENTO (REPLICAÇÃO) */
+BASE_FINAL AS (
+  SELECT E.CODIGO_EMPRESA,
+         1 AS TIPO_COLABORADOR,
+         S.COD_CONTRATO,
+         S.DT_ALT,
+         S.CATEGORIA_SEFIP,
+
+         ROW_NUMBER() OVER (
+           PARTITION BY
+             E.CODIGO_EMPRESA,
+             S.COD_CONTRATO,
+             S.DT_ALT,
+             S.CATEGORIA_SEFIP
+           ORDER BY S.DT_ALT
+         ) AS RN
+    FROM SEFIP_LIMPA S
+    JOIN EMPRESAS E
+      ON E.COD_CONTRATO = S.COD_CONTRATO
 )
 
-SELECT org.cod_nivel2 AS "codigo_empresa",
-       1 AS "tipo_colaborador",
-       l.cod_contrato AS "cadastro_colaborador",
-       TO_CHAR(l.dt_alt, 'DD/MM/YYYY') AS "data_alteracao_categoria",
-       l.categoria_sefip AS "categoria_sefip"
-  FROM linhas l
-
-/* escolhe o organograma “melhor” para a data do registro */
- OUTER APPLY (
-    SELECT h.cod_organograma
-      FROM (
-            SELECT h.*,
-                   CASE
-                     WHEN TRUNC(h.data_inicio) <= TRUNC(l.dt_alt)
-                      AND TRUNC(NVL(h.data_fim, DATE '9999-12-31')) >= TRUNC(l.dt_alt) THEN 1
-                     WHEN TRUNC(h.data_inicio) <= TRUNC(l.dt_alt) THEN 2
-                     ELSE 3
-                   END AS rk,
-                   CASE
-                     WHEN TRUNC(h.data_inicio) <= TRUNC(l.dt_alt)
-                      AND TRUNC(NVL(h.data_fim, DATE '9999-12-31')) >= TRUNC(l.dt_alt) THEN 0
-                     WHEN TRUNC(h.data_inicio) <= TRUNC(l.dt_alt) THEN TRUNC(l.dt_alt) - TRUNC(h.data_inicio)
-                     ELSE TRUNC(h.data_inicio) - TRUNC(l.dt_alt)
-                   END AS dist
-              FROM rhfp0310 h
-             WHERE h.cod_contrato = l.cod_contrato
-           ) h
-     ORDER BY rk,
-              dist,
-              CASE WHEN rk IN (1, 2) THEN h.data_inicio END DESC,
-              CASE WHEN rk = 3 THEN h.data_inicio END ASC
-     FETCH FIRST 1 ROW ONLY
- ) hist
-
-  LEFT JOIN rhfp0401 org
-    ON org.cod_organograma = hist.cod_organograma
-
- WHERE org.cod_nivel2 IS NOT NULL
-   AND l.dt_alt IS NOT NULL
-   AND l.categoria_sefip IS NOT NULL
- ORDER BY l.cod_contrato, l.dt_alt;
+SELECT CODIGO_EMPRESA AS "codigo_empresa",
+       TIPO_COLABORADOR AS "tipo_colaborador",
+       COD_CONTRATO AS "cadastro_colaborador",
+       TO_CHAR(DT_ALT, 'DD/MM/YYYY') AS "data_alteracao_categoria",
+       CASE
+           WHEN CATEGORIA_SEFIP = 1 THEN
+             1
+           WHEN CATEGORIA_SEFIP = 2 THEN
+             2
+           WHEN CATEGORIA_SEFIP = 4 THEN
+             4
+           WHEN CATEGORIA_SEFIP = 7 THEN
+             7
+           WHEN CATEGORIA_SEFIP = 11 THEN 
+             11
+           WHEN CATEGORIA_SEFIP = 901 THEN
+             99
+           ELSE
+             99
+        END AS "categoria_sefip"
+  FROM BASE_FINAL
+ WHERE RN = 1
+   AND COD_CONTRATO = 398430
+ ORDER BY COD_CONTRATO, DT_ALT, CODIGO_EMPRESA;
 
 
 
+
+
+ /*
+
+-> VALIDADORES
+
+SELECT
+ DISTINCT(TABLE_NAME) 
+FROM ALL_TAB_COLUMNS 
+WHERE UPPER (TABLE_NAME) LIKE '%RH%'
+AND COLUMN_NAME LIKE '%COD_CATEGORIA_TRAB%'
  
  
- 
- 
- 
+SELECT DISTINCT COD_CATEGORIA_TRAB
+FROM RHFP0301
+
+TB300
+1
+4
+7
+11
+901
+
+TB301
+1
+2
+7
+11
+901
+
+
+SELECT * 
+FROM RHFP0128
+WHERE COD_CATEGORIA_TRAB IN 
+(1,
+2,
+4,
+7,
+11,
+901)
+
+SELECT * FROM RHRLSE30;
+SELECT * FROM RHMUSE30;
+SELECT * FROM RHFP0128;
+SELECT * FROM RHPS0101;
+SELECT * FROM RHRLSE32;
+SELECT * FROM RHFP0300;
+SELECT * FROM RHRL0365;
+SELECT * FROM RHRLSE14;
+SELECT * FROM RHRL0045;
+SELECT * FROM RHFP0805;
+SELECT * FROM RHFP0301;
+SELECT * FROM RHPS0100;
+SELECT * FROM RHRLSE13;
+

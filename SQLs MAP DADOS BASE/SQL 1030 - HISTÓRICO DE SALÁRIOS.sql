@@ -2,94 +2,93 @@
 
 /*VERSÃO DEFINITIVA*/
 
-/*=== 1030 - HISTÓRICO DE SALÁRIOS (LOTE 1 - ATÉ DATA CORTE) ===*/
+/*=== 1030 - HISTÓRICO DE SALÁRIOS ===*/
+/* AJUSTE: PRIMEIRO REGISTRO DE SALÁRIO = DATA DE ADMISSÃO */
 
 WITH PARAM AS (
-  SELECT TO_DATE('19/01/2026', 'DD/MM/YYYY') AS DT_CORTE
+  SELECT TO_DATE('23/04/2026', 'DD/MM/YYYY') AS DT_CORTE
   FROM DUAL
 ),
 
-/* contratos que "existem" no cadastro importado (admitidos até o corte) */
 CONTRATOS_OK AS (
   SELECT C.COD_CONTRATO
     FROM V_DADOS_CONTRATO_AVT C
     CROSS JOIN PARAM P
    GROUP BY C.COD_CONTRATO, P.DT_CORTE
-  HAVING MIN(NVL(TRUNC(C.DATA_ADMISSAO), DATE '1900-01-01')) <= P.DT_CORTE
+  HAVING MIN(NVL(TRUNC(C.DATA_ADMISSAO), DATE '1900-01-01')) < P.DT_CORTE
+),
+
+ADMISSAO AS (
+  SELECT B.COD_CONTRATO,
+         MIN(TRUNC(B.DATA_INICIO)) AS DATA_ADMISSAO
+    FROM RHFP0300 B
+   GROUP BY B.COD_CONTRATO
+),
+
+SALARIOS AS (
+  SELECT SAL.*,
+         ADM.DATA_ADMISSAO,
+         MIN(TRUNC(SAL.DATA_INICIO)) OVER (
+           PARTITION BY SAL.COD_CONTRATO
+         ) AS PRIMEIRA_DATA_SALARIO
+    FROM RHFP0608 SAL
+    JOIN ADMISSAO ADM
+      ON ADM.COD_CONTRATO = SAL.COD_CONTRATO
+),
+
+SALARIOS_AJUSTADOS AS (
+  SELECT SAL.*,
+         CASE
+           WHEN TRUNC(SAL.DATA_INICIO) = SAL.PRIMEIRA_DATA_SALARIO
+            AND SAL.PRIMEIRA_DATA_SALARIO <> SAL.DATA_ADMISSAO
+           THEN SAL.DATA_ADMISSAO
+           ELSE TRUNC(SAL.DATA_INICIO)
+         END AS DATA_INICIO_AJUSTADA,
+
+         TRUNC(SAL.DATA_INICIO) AS DATA_ORG_REFERENCIA
+    FROM SALARIOS SAL
 ),
 
 BASE AS (
   SELECT DISTINCT
          ORG.COD_NIVEL2 AS COD_EMPRESA,
          1 AS TIPO_COLABORADOR,
-         SAL.COD_CONTRATO AS COD_CONTRATO,
-         SAL.DATA_INICIO AS DT_ORDEM,
-         TO_CHAR(SAL.DATA_INICIO, 'DD/MM/YYYY') AS DATA_ALTERACAO,
+         SAL.COD_CONTRATO,
+         SAL.DATA_INICIO_AJUSTADA AS DT_ORDEM,
+         TO_CHAR(SAL.DATA_INICIO_AJUSTADA, 'DD/MM/YYYY') AS DATA_ALTERACAO,
 
-                           CASE
-                  WHEN SAL.COD_MOTIVO = 27 THEN
-                   2 -- PROMOÇÃO
-                  WHEN SAL.COD_MOTIVO = 100 THEN
-                   3 -- CONVERSÃO
-                  WHEN SAL.COD_MOTIVO = 29 THEN
-                   4 -- TRANSFERÊNCIA
-                  WHEN SAL.COD_MOTIVO = 497 THEN
-                   5 -- ENQUADRAMENTO
-                  WHEN SAL.COD_MOTIVO = 107 THEN
-                   7 -- DISSÍDIO COLETIVO
-                  WHEN SAL.COD_MOTIVO = 103 THEN
-                   8 -- ANTECIPAÇÃO DISSÍDIO
-                  WHEN SAL.COD_MOTIVO = 28 THEN
-                   9 -- EQUIPARAÇÃO SALARIAL
-                  WHEN SAL.COD_MOTIVO = 122 THEN
-                   10 -- ALTERAÇÃO DE CARGO
-                
-                  WHEN SAL.COD_MOTIVO IN (31, 565) THEN
-                   12 -- ESPONTÂNEO
-                
-                  WHEN SAL.COD_MOTIVO = 480 THEN
-                   13 -- REINTEGRAÇÃO
-                  WHEN SAL.COD_MOTIVO = 108 THEN
-                   15 -- ACERTO DE FUNÇÃO
-                  WHEN SAL.COD_MOTIVO = 129 THEN
-                   18 -- ALTERAÇÃO DE CARGA HORÁRIA
-                  WHEN SAL.COD_MOTIVO = 111 THEN
-                   20 -- ACERTO DE HORÁRIO
-                  WHEN SAL.COD_MOTIVO = 496 THEN
-                   21 -- REDUÇÃO DE CARGA HORÁRIA
-                  WHEN SAL.COD_MOTIVO = 115 THEN
-                   22 -- ACERTO GERAL
-                  WHEN SAL.COD_MOTIVO = 139 THEN
-                   23 -- ACERTO DE ADMISSÃO
-                  WHEN SAL.COD_MOTIVO = 143 THEN
-                   25 -- ANTECIPAÇÃO
-                  WHEN SAL.COD_MOTIVO = 119 THEN
-                   27 -- AUMENTO - SALÁRIO MÍNIMO
-                  WHEN SAL.COD_MOTIVO = 126 THEN
-                   28 -- AUMENTO - SAL. MÍNIMO REGIONAL
-                  WHEN SAL.COD_MOTIVO = 457 THEN
-                   29 -- PISO REGIONAL
-                  WHEN SAL.COD_MOTIVO = 113 THEN
-                   30 -- PISO SALARIAL - CONF. DISSÍDIO
-                  WHEN SAL.COD_MOTIVO = 573 THEN
-                   31 -- PROMOÇÃO SALARIAL
-                  WHEN SAL.COD_MOTIVO = 486 THEN
-                   32 -- REAJUSTE - CONFORME DISSÍDIO
-                  WHEN SAL.COD_MOTIVO = 136 THEN
-                   33 -- RECOMPOSIÇÃO SAL. CONF. DISS.
-                  WHEN SAL.COD_MOTIVO = 44 THEN
-                   34 -- REGISTRO DE ADMISSÃO
-                  WHEN SAL.COD_MOTIVO = 152 THEN
-                   35 -- TABELA GERAL
-                  WHEN SAL.COD_MOTIVO = 120 THEN
-                   36 -- TABELA APRENDIZ
-                  WHEN SAL.COD_MOTIVO = 105 THEN
-                   37 -- VALOR FIXADO EM ASSEMBLEIA
-                  WHEN SAL.COD_MOTIVO = 33 THEN
-                   39 -- ACORDO COLETIVO                
-                  ELSE
-                   999 -- OU 0 / SAL.COD_MOTIVO, COMO VOCÊ PREFERIR
-                END AS CODIGO_MOTIVO_ALTERACAO,
+         CASE
+           WHEN SAL.COD_MOTIVO = 27 THEN 2
+           WHEN SAL.COD_MOTIVO = 100 THEN 3
+           WHEN SAL.COD_MOTIVO = 29 THEN 4
+           WHEN SAL.COD_MOTIVO = 497 THEN 5
+           WHEN SAL.COD_MOTIVO = 107 THEN 7
+           WHEN SAL.COD_MOTIVO = 103 THEN 8
+           WHEN SAL.COD_MOTIVO = 28 THEN 9
+           WHEN SAL.COD_MOTIVO = 122 THEN 10
+           WHEN SAL.COD_MOTIVO IN (31, 565) THEN 12
+           WHEN SAL.COD_MOTIVO = 480 THEN 13
+           WHEN SAL.COD_MOTIVO = 108 THEN 15
+           WHEN SAL.COD_MOTIVO = 129 THEN 18
+           WHEN SAL.COD_MOTIVO = 111 THEN 20
+           WHEN SAL.COD_MOTIVO = 496 THEN 21
+           WHEN SAL.COD_MOTIVO = 115 THEN 22
+           WHEN SAL.COD_MOTIVO = 139 THEN 23
+           WHEN SAL.COD_MOTIVO = 143 THEN 25
+           WHEN SAL.COD_MOTIVO = 119 THEN 27
+           WHEN SAL.COD_MOTIVO = 126 THEN 28
+           WHEN SAL.COD_MOTIVO = 457 THEN 29
+           WHEN SAL.COD_MOTIVO = 113 THEN 30
+           WHEN SAL.COD_MOTIVO = 573 THEN 31
+           WHEN SAL.COD_MOTIVO = 486 THEN 32
+           WHEN SAL.COD_MOTIVO = 136 THEN 33
+           WHEN SAL.COD_MOTIVO = 44 THEN 34
+           WHEN SAL.COD_MOTIVO = 152 THEN 35
+           WHEN SAL.COD_MOTIVO = 120 THEN 36
+           WHEN SAL.COD_MOTIVO = 105 THEN 37
+           WHEN SAL.COD_MOTIVO = 33 THEN 39
+           ELSE 999
+         END AS CODIGO_MOTIVO_ALTERACAO,
 
          NVL(SAL.VALOR_SALARIO, 0) AS VALOR_SALARIO_ATUAL,
 
@@ -101,31 +100,47 @@ BASE AS (
 
          NVL(SAL.PERCENTUAL, 0) AS PERCENTUAL_REAJUSTE_CONCEDIDO
 
-    FROM RHFP0608 SAL
+    FROM SALARIOS_AJUSTADOS SAL
 
-   OUTER APPLY (
+   /*OUTER APPLY (
       SELECT H.COD_ORGANOGRAMA
-        FROM (SELECT H.*,
-                     CASE
-                       WHEN TRUNC(H.DATA_INICIO) <= TRUNC(SAL.DATA_INICIO)
-                        AND TRUNC(NVL(H.DATA_FIM, DATE '9999-12-31')) >= TRUNC(SAL.DATA_INICIO) THEN 1
-                       WHEN TRUNC(H.DATA_INICIO) <= TRUNC(SAL.DATA_INICIO) THEN 2
-                       ELSE 3
-                     END AS RK,
-                     CASE
-                       WHEN TRUNC(H.DATA_INICIO) <= TRUNC(SAL.DATA_INICIO)
-                        AND TRUNC(NVL(H.DATA_FIM, DATE '9999-12-31')) >= TRUNC(SAL.DATA_INICIO) THEN 0
-                       WHEN TRUNC(H.DATA_INICIO) <= TRUNC(SAL.DATA_INICIO) THEN TRUNC(SAL.DATA_INICIO) - TRUNC(H.DATA_INICIO)
-                       ELSE TRUNC(H.DATA_INICIO) - TRUNC(SAL.DATA_INICIO)
-                     END AS DIST
-                FROM RHFP0310 H
-               WHERE H.COD_CONTRATO = SAL.COD_CONTRATO) H
-       ORDER BY RK,
-                DIST,
-                CASE WHEN RK IN (1, 2) THEN H.DATA_INICIO END DESC,
-                CASE WHEN RK = 3 THEN H.DATA_INICIO END ASC
+        FROM RHFP0310 H
+       WHERE H.COD_CONTRATO = SAL.COD_CONTRATO
+         AND TRUNC(H.DATA_INICIO) <= SAL.DATA_INICIO_AJUSTADA
+         AND TRUNC(NVL(H.DATA_FIM, DATE '9999-12-31')) >= SAL.DATA_INICIO_AJUSTADA
+       ORDER BY H.DATA_INICIO DESC
        FETCH FIRST 1 ROW ONLY
-   ) HIST
+   ) HIST*/
+   
+   OUTER APPLY (
+  SELECT X.COD_ORGANOGRAMA
+    FROM (
+      SELECT H.COD_ORGANOGRAMA,
+             H.DATA_INICIO,
+             H.DATA_FIM,
+
+             CASE
+               WHEN TRUNC(H.DATA_INICIO) <= SAL.DATA_ORG_REFERENCIA
+                AND TRUNC(NVL(H.DATA_FIM, DATE '9999-12-31')) >= SAL.DATA_ORG_REFERENCIA
+               THEN 1
+               ELSE 2
+             END AS PRIORIDADE,
+
+             CASE
+               WHEN TRUNC(H.DATA_INICIO) <= SAL.DATA_ORG_REFERENCIA
+                AND TRUNC(NVL(H.DATA_FIM, DATE '9999-12-31')) >= SAL.DATA_ORG_REFERENCIA
+               THEN 0
+               ELSE ABS(SAL.DATA_ORG_REFERENCIA - TRUNC(H.DATA_INICIO))
+             END AS DISTANCIA
+
+        FROM RHFP0310 H
+       WHERE H.COD_CONTRATO = SAL.COD_CONTRATO
+    ) X
+   ORDER BY X.PRIORIDADE,
+            X.DISTANCIA,
+            X.DATA_INICIO DESC
+   FETCH FIRST 1 ROW ONLY
+) HIST
 
    LEFT JOIN RHFP0401 ORG
      ON ORG.COD_ORGANOGRAMA = HIST.COD_ORGANOGRAMA
@@ -139,7 +154,7 @@ SELECT COD_EMPRESA      AS "codigo_empresa",
        COD_CONTRATO     AS "cadastro_colaborador",
        DATA_ALTERACAO   AS "data_alteracao",
 
-       ROW_NUMBER() OVER(
+       ROW_NUMBER() OVER (
          PARTITION BY COD_CONTRATO
          ORDER BY DT_ORDEM ASC,
                   NVL(VALOR_SALARIO_ATUAL, 0) ASC,
@@ -151,4 +166,376 @@ SELECT COD_EMPRESA      AS "codigo_empresa",
        TIPO_SALARIO                  AS "tipo_salario",
        PERCENTUAL_REAJUSTE_CONCEDIDO AS "percentual_reajuste_concedido"
   FROM BASE
+  --WHERE COD_CONTRATO = 352683
  ORDER BY COD_CONTRATO, DT_ORDEM;
+
+
+
+
+
+
+
+
+
+
+
+/*=== 1030 - HISTÓRICO DE SALÁRIOS ===*/
+/* VERSÃO TRANSFERIDOS */
+/* Regra:
+   - somente contratos com transferência entre empresas
+   - 2 empresas: usa somente a última transição
+   - 3+ empresas: replicação acumulada
+   - mantém os dados originais do salário e troca apenas a empresa
+   - sequência da alteração por contrato + empresa
+*/
+
+WITH PARAM AS (
+  SELECT TO_DATE('23/04/2026', 'DD/MM/YYYY') AS DT_CORTE
+  FROM DUAL
+),
+
+CONTRATOS_OK AS (
+  SELECT C.COD_CONTRATO
+    FROM V_DADOS_CONTRATO_AVT C
+    CROSS JOIN PARAM P
+   GROUP BY C.COD_CONTRATO, P.DT_CORTE
+  HAVING MIN(NVL(TRUNC(C.DATA_ADMISSAO), DATE '1900-01-01')) < P.DT_CORTE
+),
+
+/* =========================================================
+   MAPA DE REPLICAÇÃO
+   ========================================================= */
+MAPA_BASE AS (
+    SELECT DISTINCT
+           M.COD_CONTRATO,
+           M.EMPRESA_ORIGEM,
+           M.EMPRESA_DESTINO,
+           TRUNC(M.DATA_TRANSFERENCIA) AS DATA_TRANSFERENCIA
+      FROM GRZ_MAPA_TRANSF_EMPRESA_V2 M
+     WHERE M.EMPRESA_ORIGEM  IS NOT NULL
+       AND M.EMPRESA_DESTINO IS NOT NULL
+       AND M.EMPRESA_ORIGEM <> M.EMPRESA_DESTINO
+),
+
+MAPA_STATS AS (
+    SELECT X.COD_CONTRATO,
+           COUNT(*) AS QT_MOVIMENTOS,
+           COUNT(DISTINCT X.EMPRESA) AS QT_EMPRESAS
+      FROM (
+            SELECT COD_CONTRATO, EMPRESA_ORIGEM  AS EMPRESA FROM MAPA_BASE
+            UNION
+            SELECT COD_CONTRATO, EMPRESA_DESTINO AS EMPRESA FROM MAPA_BASE
+           ) X
+     GROUP BY X.COD_CONTRATO
+),
+
+MOV_SEQ AS (
+    SELECT MB.COD_CONTRATO,
+           MB.EMPRESA_ORIGEM,
+           MB.EMPRESA_DESTINO,
+           MB.DATA_TRANSFERENCIA,
+           ROW_NUMBER() OVER (
+               PARTITION BY MB.COD_CONTRATO
+               ORDER BY MB.DATA_TRANSFERENCIA,
+                        MB.EMPRESA_ORIGEM,
+                        MB.EMPRESA_DESTINO
+           ) AS RN
+      FROM MAPA_BASE MB
+),
+
+ULTIMA_TRANSF AS (
+    SELECT COD_CONTRATO,
+           EMPRESA_ORIGEM,
+           EMPRESA_DESTINO,
+           DATA_TRANSFERENCIA
+      FROM (
+            SELECT MS.*,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY MS.COD_CONTRATO
+                       ORDER BY MS.DATA_TRANSFERENCIA DESC,
+                                MS.RN DESC
+                   ) AS RN_ULT
+              FROM MOV_SEQ MS
+           )
+     WHERE RN_ULT = 1
+),
+
+PARES_2_EMPRESAS AS (
+    SELECT U.COD_CONTRATO,
+           U.EMPRESA_ORIGEM,
+           U.EMPRESA_DESTINO,
+           U.DATA_TRANSFERENCIA
+      FROM ULTIMA_TRANSF U
+      JOIN MAPA_STATS S
+        ON S.COD_CONTRATO = U.COD_CONTRATO
+     WHERE S.QT_EMPRESAS = 2
+),
+
+PARES_IMEDIATOS_3MAIS AS (
+    SELECT M.COD_CONTRATO,
+           M.EMPRESA_ORIGEM,
+           M.EMPRESA_DESTINO,
+           M.DATA_TRANSFERENCIA
+      FROM MOV_SEQ M
+      JOIN MAPA_STATS S
+        ON S.COD_CONTRATO = M.COD_CONTRATO
+     WHERE S.QT_EMPRESAS > 2
+),
+
+EMPRESAS_ANTERIORES AS (
+    SELECT DISTINCT
+           CUR.COD_CONTRATO,
+           CUR.RN              AS RN_ATUAL,
+           ANT.EMPRESA_ORIGEM  AS EMPRESA_ANTERIOR
+      FROM MOV_SEQ CUR
+      JOIN MOV_SEQ ANT
+        ON ANT.COD_CONTRATO = CUR.COD_CONTRATO
+       AND ANT.RN < CUR.RN
+      JOIN MAPA_STATS S
+        ON S.COD_CONTRATO = CUR.COD_CONTRATO
+     WHERE S.QT_EMPRESAS > 2
+
+    UNION
+
+    SELECT DISTINCT
+           CUR.COD_CONTRATO,
+           CUR.RN               AS RN_ATUAL,
+           ANT.EMPRESA_DESTINO  AS EMPRESA_ANTERIOR
+      FROM MOV_SEQ CUR
+      JOIN MOV_SEQ ANT
+        ON ANT.COD_CONTRATO = CUR.COD_CONTRATO
+       AND ANT.RN < CUR.RN
+      JOIN MAPA_STATS S
+        ON S.COD_CONTRATO = CUR.COD_CONTRATO
+     WHERE S.QT_EMPRESAS > 2
+),
+
+PARES_ACUM_3MAIS AS (
+    SELECT DISTINCT
+           CUR.COD_CONTRATO,
+           EA.EMPRESA_ANTERIOR AS EMPRESA_ORIGEM,
+           CUR.EMPRESA_DESTINO AS EMPRESA_DESTINO,
+           CUR.DATA_TRANSFERENCIA
+      FROM MOV_SEQ CUR
+      JOIN EMPRESAS_ANTERIORES EA
+        ON EA.COD_CONTRATO = CUR.COD_CONTRATO
+       AND EA.RN_ATUAL     = CUR.RN
+      JOIN MAPA_STATS S
+        ON S.COD_CONTRATO = CUR.COD_CONTRATO
+     WHERE S.QT_EMPRESAS > 2
+       AND EA.EMPRESA_ANTERIOR <> CUR.EMPRESA_DESTINO
+),
+
+PARES_3MAIS_BRUTO AS (
+    SELECT * FROM PARES_IMEDIATOS_3MAIS
+    UNION ALL
+    SELECT * FROM PARES_ACUM_3MAIS
+),
+
+PARES_3MAIS AS (
+    SELECT COD_CONTRATO,
+           EMPRESA_ORIGEM,
+           EMPRESA_DESTINO,
+           DATA_TRANSFERENCIA
+      FROM (
+            SELECT P.*,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY P.COD_CONTRATO,
+                                    P.EMPRESA_ORIGEM,
+                                    P.EMPRESA_DESTINO
+                       ORDER BY P.DATA_TRANSFERENCIA DESC
+                   ) AS RN_PAR
+              FROM PARES_3MAIS_BRUTO P
+           )
+     WHERE RN_PAR = 1
+),
+
+MAPA_FINAL AS (
+    SELECT * FROM PARES_2_EMPRESAS
+    UNION ALL
+    SELECT * FROM PARES_3MAIS
+),
+
+/* =========================================================
+   BASE ORIGINAL DO 1030
+   ========================================================= */
+ADMISSAO AS (
+  SELECT B.COD_CONTRATO,
+         MIN(TRUNC(B.DATA_INICIO)) AS DATA_ADMISSAO
+    FROM RHFP0300 B
+   GROUP BY B.COD_CONTRATO
+),
+
+SALARIOS AS (
+  SELECT SAL.*,
+         ADM.DATA_ADMISSAO,
+         MIN(TRUNC(SAL.DATA_INICIO)) OVER (
+           PARTITION BY SAL.COD_CONTRATO
+         ) AS PRIMEIRA_DATA_SALARIO
+    FROM RHFP0608 SAL
+    JOIN ADMISSAO ADM
+      ON ADM.COD_CONTRATO = SAL.COD_CONTRATO
+),
+
+SALARIOS_AJUSTADOS AS (
+  SELECT SAL.*,
+         CASE
+           WHEN TRUNC(SAL.DATA_INICIO) = SAL.PRIMEIRA_DATA_SALARIO
+            AND SAL.PRIMEIRA_DATA_SALARIO <> SAL.DATA_ADMISSAO
+           THEN SAL.DATA_ADMISSAO
+           ELSE TRUNC(SAL.DATA_INICIO)
+         END AS DATA_INICIO_AJUSTADA,
+
+         TRUNC(SAL.DATA_INICIO) AS DATA_ORG_REFERENCIA
+    FROM SALARIOS SAL
+),
+
+BASE AS (
+  SELECT DISTINCT
+         ORG.COD_NIVEL2 AS COD_EMPRESA,
+         1 AS TIPO_COLABORADOR,
+         SAL.COD_CONTRATO,
+         SAL.DATA_INICIO_AJUSTADA AS DT_ORDEM,
+         TO_CHAR(SAL.DATA_INICIO_AJUSTADA, 'DD/MM/YYYY') AS DATA_ALTERACAO,
+
+         CASE
+           WHEN SAL.COD_MOTIVO = 27 THEN 2
+           WHEN SAL.COD_MOTIVO = 100 THEN 3
+           WHEN SAL.COD_MOTIVO = 29 THEN 4
+           WHEN SAL.COD_MOTIVO = 497 THEN 5
+           WHEN SAL.COD_MOTIVO = 107 THEN 7
+           WHEN SAL.COD_MOTIVO = 103 THEN 8
+           WHEN SAL.COD_MOTIVO = 28 THEN 9
+           WHEN SAL.COD_MOTIVO = 122 THEN 10
+           WHEN SAL.COD_MOTIVO IN (31, 565) THEN 12
+           WHEN SAL.COD_MOTIVO = 480 THEN 13
+           WHEN SAL.COD_MOTIVO = 108 THEN 15
+           WHEN SAL.COD_MOTIVO = 129 THEN 18
+           WHEN SAL.COD_MOTIVO = 111 THEN 20
+           WHEN SAL.COD_MOTIVO = 496 THEN 21
+           WHEN SAL.COD_MOTIVO = 115 THEN 22
+           WHEN SAL.COD_MOTIVO = 139 THEN 23
+           WHEN SAL.COD_MOTIVO = 143 THEN 25
+           WHEN SAL.COD_MOTIVO = 119 THEN 27
+           WHEN SAL.COD_MOTIVO = 126 THEN 28
+           WHEN SAL.COD_MOTIVO = 457 THEN 29
+           WHEN SAL.COD_MOTIVO = 113 THEN 30
+           WHEN SAL.COD_MOTIVO = 573 THEN 31
+           WHEN SAL.COD_MOTIVO = 486 THEN 32
+           WHEN SAL.COD_MOTIVO = 136 THEN 33
+           WHEN SAL.COD_MOTIVO = 44 THEN 34
+           WHEN SAL.COD_MOTIVO = 152 THEN 35
+           WHEN SAL.COD_MOTIVO = 120 THEN 36
+           WHEN SAL.COD_MOTIVO = 105 THEN 37
+           WHEN SAL.COD_MOTIVO = 33 THEN 39
+           ELSE 999
+         END AS CODIGO_MOTIVO_ALTERACAO,
+
+         NVL(SAL.VALOR_SALARIO, 0) AS VALOR_SALARIO_ATUAL,
+
+         CASE
+           WHEN SAL.TIPO_SALARIO = 'M' THEN 1
+           WHEN SAL.TIPO_SALARIO = 'H' THEN 2
+           ELSE 1
+         END AS TIPO_SALARIO,
+
+         NVL(SAL.PERCENTUAL, 0) AS PERCENTUAL_REAJUSTE_CONCEDIDO
+
+    FROM SALARIOS_AJUSTADOS SAL
+
+   OUTER APPLY (
+      SELECT X.COD_ORGANOGRAMA
+        FROM (
+          SELECT H.COD_ORGANOGRAMA,
+                 H.DATA_INICIO,
+                 H.DATA_FIM,
+
+                 CASE
+                   WHEN TRUNC(H.DATA_INICIO) <= SAL.DATA_ORG_REFERENCIA
+                    AND TRUNC(NVL(H.DATA_FIM, DATE '9999-12-31')) >= SAL.DATA_ORG_REFERENCIA
+                   THEN 1
+                   ELSE 2
+                 END AS PRIORIDADE,
+
+                 CASE
+                   WHEN TRUNC(H.DATA_INICIO) <= SAL.DATA_ORG_REFERENCIA
+                    AND TRUNC(NVL(H.DATA_FIM, DATE '9999-12-31')) >= SAL.DATA_ORG_REFERENCIA
+                   THEN 0
+                   ELSE ABS(SAL.DATA_ORG_REFERENCIA - TRUNC(H.DATA_INICIO))
+                 END AS DISTANCIA
+
+            FROM RHFP0310 H
+           WHERE H.COD_CONTRATO = SAL.COD_CONTRATO
+        ) X
+       ORDER BY X.PRIORIDADE,
+                X.DISTANCIA,
+                X.DATA_INICIO DESC
+       FETCH FIRST 1 ROW ONLY
+   ) HIST
+
+   LEFT JOIN RHFP0401 ORG
+     ON ORG.COD_ORGANOGRAMA = HIST.COD_ORGANOGRAMA
+
+   WHERE ORG.COD_NIVEL2 IS NOT NULL
+     AND SAL.COD_CONTRATO IN (SELECT COD_CONTRATO FROM CONTRATOS_OK)
+     AND EXISTS (
+           SELECT 1
+             FROM MAPA_BASE MB
+            WHERE MB.COD_CONTRATO = SAL.COD_CONTRATO
+     )
+),
+
+/* =========================================================
+   REPLICA ORIGEM -> DESTINO
+   ========================================================= */
+BASE_REPLICADA AS (
+  SELECT
+         MF.EMPRESA_DESTINO AS COD_EMPRESA,
+         B.TIPO_COLABORADOR,
+         B.COD_CONTRATO,
+         B.DT_ORDEM,
+         B.DATA_ALTERACAO,
+         B.CODIGO_MOTIVO_ALTERACAO,
+         B.VALOR_SALARIO_ATUAL,
+         B.TIPO_SALARIO,
+         B.PERCENTUAL_REAJUSTE_CONCEDIDO,
+
+         ROW_NUMBER() OVER (
+           PARTITION BY
+             MF.EMPRESA_DESTINO,
+             B.COD_CONTRATO,
+             B.DT_ORDEM,
+             NVL(B.VALOR_SALARIO_ATUAL, 0),
+             NVL(B.CODIGO_MOTIVO_ALTERACAO, 999),
+             NVL(B.TIPO_SALARIO, 1),
+             NVL(B.PERCENTUAL_REAJUSTE_CONCEDIDO, 0)
+           ORDER BY
+             MF.DATA_TRANSFERENCIA DESC,
+             MF.EMPRESA_ORIGEM DESC
+         ) AS RN
+    FROM BASE B
+    JOIN MAPA_FINAL MF
+      ON MF.COD_CONTRATO   = B.COD_CONTRATO
+     AND MF.EMPRESA_ORIGEM = B.COD_EMPRESA
+)
+
+SELECT COD_EMPRESA      AS "codigo_empresa",
+       TIPO_COLABORADOR AS "tipo_colaborador",
+       COD_CONTRATO     AS "cadastro_colaborador",
+       DATA_ALTERACAO   AS "data_alteracao",
+
+       ROW_NUMBER() OVER (
+         PARTITION BY COD_CONTRATO, COD_EMPRESA
+         ORDER BY DT_ORDEM ASC,
+                  NVL(VALOR_SALARIO_ATUAL, 0) ASC,
+                  CODIGO_MOTIVO_ALTERACAO ASC
+       ) AS "sequencia_alteracao",
+
+       CODIGO_MOTIVO_ALTERACAO       AS "codigo_motivo_alteracao",
+       VALOR_SALARIO_ATUAL           AS "valor_salario_atual",
+       TIPO_SALARIO                  AS "tipo_salario",
+       PERCENTUAL_REAJUSTE_CONCEDIDO AS "percentual_reajuste_concedido"
+  FROM BASE_REPLICADA
+ WHERE RN = 1
+ ORDER BY COD_CONTRATO, COD_EMPRESA, DT_ORDEM;
+

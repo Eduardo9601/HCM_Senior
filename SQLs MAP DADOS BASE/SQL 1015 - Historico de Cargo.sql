@@ -1,5 +1,5 @@
-/* ================================
-   == 1015 - HISTÓRICO DE CARGOS ==
+/* == 1015 - HISTÓRICO DE CARGOS ==
+   ================================ */
 
 --VERSÃO DIRETA --EXPORTAÇÃO DIRETA DA CONSULTA PARA EXCEL E CONVERTIDA PARA CSV
 
@@ -9,102 +9,473 @@
 
 WITH
 PARAM AS (
-  SELECT DATE '2026-01-19' AS DT_CORTE FROM DUAL
+    SELECT DATE '2026-04-23' AS DT_CORTE FROM DUAL
 ),
-/* contratos “existentes” no lote importado (admissão <= corte) */
+
 CONTRATOS_OK AS (
-  SELECT C.COD_CONTRATO
+    SELECT DISTINCT
+        C.COD_CONTRATO,
+        TRUNC(C.DATA_ADMISSAO) AS DATA_ADMISSAO
     FROM V_DADOS_CONTRATO_AVT C
-   CROSS JOIN PARAM P
-   GROUP BY C.COD_CONTRATO, P.DT_CORTE
-  HAVING MIN(NVL(TRUNC(C.DATA_ADMISSAO), DATE '1900-01-01')) <= P.DT_CORTE
-  
+    WHERE TRUNC(NVL(C.DATA_ADMISSAO, DATE '1900-01-01')) <
+          (SELECT DT_CORTE FROM PARAM)
+),
+
+-- Eventos de cargo
+EVENTOS_CARGO AS (
+    SELECT
+        H.COD_CONTRATO,
+        CASE
+            WHEN TRUNC(H.DATA_INICIO) < OK.DATA_ADMISSAO
+            THEN OK.DATA_ADMISSAO
+            ELSE TRUNC(H.DATA_INICIO)
+        END AS DATA_EVENTO,
+        H.COD_CLH AS COD_FUNCAO,
+        H.COD_MOTIVO
+    FROM RHFP0340 H
+    JOIN CONTRATOS_OK OK
+      ON OK.COD_CONTRATO = H.COD_CONTRATO
+    WHERE TRUNC(H.DATA_INICIO) <
+          (SELECT DT_CORTE FROM PARAM)
+
+),
+
+--SELECT * FROM EVENTOS_CARGO
+
+-- Eventos de empresa
+EVENTOS_EMPRESA AS (
+    SELECT
+        O.COD_CONTRATO,
+        TRUNC(O.DATA_INICIO) AS DATA_EVENTO
+    FROM RHFP0310 O
+    JOIN CONTRATOS_OK OK
+      ON OK.COD_CONTRATO = O.COD_CONTRATO
+    JOIN RHFP0401 O2
+      ON O.COD_ORGANOGRAMA = O2.COD_ORGANOGRAMA
+    WHERE O2.COD_NIVEL2 IS NOT NULL
+      AND TRUNC(O.DATA_INICIO) <
+          (SELECT DT_CORTE FROM PARAM)
+),
+
+
+-- Linha do tempo unificada
+LINHA_TEMPO AS (
+    SELECT COD_CONTRATO, DATA_EVENTO FROM EVENTOS_CARGO
+    UNION
+    SELECT COD_CONTRATO, DATA_EVENTO FROM EVENTOS_EMPRESA
+),
+
+BASE_FINAL AS (
+    SELECT
+        L.COD_CONTRATO,
+        L.DATA_EVENTO AS DATA_ALTERACAO,
+
+        -- Cargo vigente na data
+        (
+            SELECT H.COD_CLH
+            FROM RHFP0340 H
+            WHERE H.COD_CONTRATO = L.COD_CONTRATO
+              AND TRUNC(H.DATA_INICIO) <= L.DATA_EVENTO
+            ORDER BY TRUNC(H.DATA_INICIO) DESC
+            FETCH FIRST 1 ROW ONLY
+        ) AS COD_FUNCAO,
+
+        (
+            SELECT H.COD_MOTIVO
+            FROM RHFP0340 H
+            WHERE H.COD_CONTRATO = L.COD_CONTRATO
+              AND TRUNC(H.DATA_INICIO) <= L.DATA_EVENTO
+            ORDER BY TRUNC(H.DATA_INICIO) DESC
+            FETCH FIRST 1 ROW ONLY
+        ) AS COD_MOTIVO,
+
+        -- Empresa vigente na data
+        (
+            SELECT O2.COD_NIVEL2
+            FROM RHFP0310 O, RHFP0401 O2
+            WHERE O.COD_CONTRATO = L.COD_CONTRATO
+              AND O.COD_ORGANOGRAMA = O2.COD_ORGANOGRAMA
+              AND O2.COD_NIVEL2 IS NOT NULL
+              AND TRUNC(O.DATA_INICIO) <= L.DATA_EVENTO
+              AND TRUNC(NVL(O.DATA_FIM, DATE '2999-12-31')) >= L.DATA_EVENTO
+            ORDER BY TRUNC(O.DATA_INICIO) DESC
+            FETCH FIRST 1 ROW ONLY
+        ) AS COD_EMPRESA
+
+    FROM LINHA_TEMPO L
 )
 
+-- =======================
+-- SELECT FINAL AGRUPADO
+-- =======================
+SELECT
+    B.COD_EMPRESA AS "codigo_empresa",
+    1 AS "tipo_colaborador",
+    B.COD_CONTRATO AS "cadastro_colaborador",
+    TO_CHAR(MIN(B.DATA_ALTERACAO), 'DD/MM/YYYY') AS "data_alteracao",
+    1 AS "estrutura_cargo",
+    B.COD_FUNCAO AS "codigo_cargo",
+    MIN(
+        CASE
+            WHEN B.COD_MOTIVO = 43 THEN 1
+            WHEN B.COD_MOTIVO = 22 THEN 2
+            WHEN B.COD_MOTIVO = 23 THEN 9
+            WHEN B.COD_MOTIVO IN (6, 90, 100) THEN 3
+            WHEN B.COD_MOTIVO = 24 THEN 4
+            WHEN B.COD_MOTIVO = 25 THEN 5
+            WHEN B.COD_MOTIVO = 26 THEN 12
+            WHEN B.COD_MOTIVO = 485 THEN 10
+            WHEN B.COD_MOTIVO = 421 THEN 15
+            WHEN B.COD_MOTIVO = 429 THEN 16
+            WHEN B.COD_MOTIVO = 431 THEN 11
+            WHEN B.COD_MOTIVO = 459 THEN 17
+            WHEN B.COD_MOTIVO = 479 THEN 13
+            ELSE 999
+        END
+    ) AS "motivo_alteracao"
+FROM BASE_FINAL B
+WHERE B.COD_EMPRESA IS NOT NULL
+  AND B.COD_FUNCAO IS NOT NULL
+  --AND B.COD_CONTRATO = 352683   -- remova para todos
+GROUP BY
+    B.COD_CONTRATO,
+    B.COD_EMPRESA,
+    B.COD_FUNCAO
+ORDER BY
+    B.COD_CONTRATO,
+    MIN(B.DATA_ALTERACAO);
+    
+    
+    
+/*VERSÃO COM TRATAMENTO APENAS COM OS COLABORADORES COM MAIS DE UMA EMPRESA*/    
+ 
+WITH
+PARAM AS (
+    SELECT DATE '2026-04-23' AS DT_CORTE
+      FROM DUAL
+),
 
-select distinct /* codigo_empresa: vigente > anterior > futura (desempate por distância) */
-                org.cod_nivel2 as "codigo_empresa",
-                1 as "tipo_colaborador",
-                ch.cod_contrato as "cadastro_colaborador",
-                to_char(ch.data_ini_clh, 'DD/MM/YYYY') as "data_alteracao",
-                1 as "estrutura_cargo",
-                ch.cod_funcao as "codigo_cargo",
-                case
-                    when ch.cod_motivo = 43 then
-                      1
-                    when ch.cod_motivo = 22 then
-                      2
-                    when ch.cod_motivo = 23 then
-                      9
-                    when ch.cod_motivo in (6, 90, 100) then
-                      3
-                    when ch.cod_motivo = 24 then
-                      4
-                    when ch.cod_motivo = 25 then
-                      5
-                    when ch.cod_motivo = 26 then
-                      12
-                    when ch.cod_motivo = 485 then
-                      10
-                    when ch.cod_motivo = 421 then
-                      15
-                    when ch.cod_motivo = 429 then
-                      16
-                    when ch.cod_motivo = 431 then
-                      11
-                    when ch.cod_motivo = 459 then
-                      17
-                    when ch.cod_motivo = 479 then
-                      13
-                    else
-                      999
-                end as "motivo_alteracao"
-  from vh_cargo_contrato_avt ch
-  JOIN CONTRATOS_OK OK ON OK.COD_CONTRATO = CH.COD_CONTRATO
-  CROSS JOIN PARAM P
- outer apply (
-              /* escolhe 1 organograma “melhor” p/ a data da alteração do cargo */
-              select h.cod_organograma
-                from (select h.*,
-                              case
-                                when trunc(h.data_inicio) <=
-                                     trunc(ch.data_ini_clh) and
-                                     trunc(nvl(h.data_fim, date '9999-12-31')) >=
-                                     trunc(ch.data_ini_clh) then
-                                 1
-                                when trunc(h.data_inicio) <=
-                                     trunc(ch.data_ini_clh) then
-                                 2
-                                else
-                                 3
-                              end as rk,
-                              case
-                                when trunc(h.data_inicio) <=
-                                     trunc(ch.data_ini_clh) and
-                                     trunc(nvl(h.data_fim, date '9999-12-31')) >=
-                                     trunc(ch.data_ini_clh) then
-                                 0
-                                when trunc(h.data_inicio) <=
-                                     trunc(ch.data_ini_clh) then
-                                 trunc(ch.data_ini_clh) - trunc(h.data_inicio)
-                                else
-                                 trunc(h.data_inicio) - trunc(ch.data_ini_clh)
-                              end as dist
-                         from rhfp0310 h
-                        where h.cod_contrato = ch.cod_contrato) h
-               order by rk,
-                         dist,
-                         case
-                           when rk in (1, 2) then
-                            h.data_inicio
-                         end desc,
-                         case
-                           when rk = 3 then
-                            h.data_inicio
-                         end asc
-               fetch first 1 row only) hist
-  left join rhfp0401 org
-    on org.cod_organograma = hist.cod_organograma
- where org.cod_nivel2 is not null   
- AND TRUNC(ch.data_ini_clh) <= P.DT_CORTE
- order by ch.cod_contrato, to_char(ch.data_ini_clh, 'DD/MM/YYYY'), ORG.COD_NIVEL2;
+CONTRATOS_OK AS (
+    SELECT DISTINCT
+           C.COD_CONTRATO,
+           TRUNC(C.DATA_ADMISSAO) AS DATA_ADMISSAO
+      FROM V_DADOS_CONTRATO_AVT C
+     WHERE TRUNC(NVL(C.DATA_ADMISSAO, DATE '1900-01-01')) <
+           (SELECT DT_CORTE FROM PARAM)
+),
+
+/* =========================================================
+   MAPA DE REPLICAÇÃO - MESMA LÓGICA DO 1014
+   ========================================================= */
+
+MAPA_BASE AS (
+    SELECT DISTINCT
+           M.COD_CONTRATO,
+           M.EMPRESA_ORIGEM,
+           M.EMPRESA_DESTINO,
+           TRUNC(M.DATA_TRANSFERENCIA) AS DATA_TRANSFERENCIA
+      FROM GRZ_MAPA_TRANSF_EMPRESA_V2 M
+     WHERE M.EMPRESA_ORIGEM  IS NOT NULL
+       AND M.EMPRESA_DESTINO IS NOT NULL
+       AND M.EMPRESA_ORIGEM <> M.EMPRESA_DESTINO
+),
+
+MAPA_STATS AS (
+    SELECT X.COD_CONTRATO,
+           COUNT(*) AS QT_MOVIMENTOS,
+           COUNT(DISTINCT X.EMPRESA) AS QT_EMPRESAS
+      FROM (
+            SELECT COD_CONTRATO, EMPRESA_ORIGEM  AS EMPRESA FROM MAPA_BASE
+            UNION
+            SELECT COD_CONTRATO, EMPRESA_DESTINO AS EMPRESA FROM MAPA_BASE
+           ) X
+     GROUP BY X.COD_CONTRATO
+),
+
+MOV_SEQ AS (
+    SELECT MB.COD_CONTRATO,
+           MB.EMPRESA_ORIGEM,
+           MB.EMPRESA_DESTINO,
+           MB.DATA_TRANSFERENCIA,
+           ROW_NUMBER() OVER (
+               PARTITION BY MB.COD_CONTRATO
+               ORDER BY MB.DATA_TRANSFERENCIA,
+                        MB.EMPRESA_ORIGEM,
+                        MB.EMPRESA_DESTINO
+           ) AS RN
+      FROM MAPA_BASE MB
+),
+
+ULTIMA_TRANSF AS (
+    SELECT COD_CONTRATO,
+           EMPRESA_ORIGEM,
+           EMPRESA_DESTINO,
+           DATA_TRANSFERENCIA
+      FROM (
+            SELECT MS.*,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY MS.COD_CONTRATO
+                       ORDER BY MS.DATA_TRANSFERENCIA DESC,
+                                MS.RN DESC
+                   ) AS RN_ULT
+              FROM MOV_SEQ MS
+           )
+     WHERE RN_ULT = 1
+),
+
+/* contratos com apenas 2 empresas distintas:
+   simples e vai-e-volta ficam só com a última transição */
+PARES_2_EMPRESAS AS (
+    SELECT U.COD_CONTRATO,
+           U.EMPRESA_ORIGEM,
+           U.EMPRESA_DESTINO,
+           U.DATA_TRANSFERENCIA
+      FROM ULTIMA_TRANSF U
+      JOIN MAPA_STATS S
+        ON S.COD_CONTRATO = U.COD_CONTRATO
+     WHERE S.QT_EMPRESAS = 2
+),
+
+/* contratos com 3+ empresas: pares imediatos */
+PARES_IMEDIATOS_3MAIS AS (
+    SELECT M.COD_CONTRATO,
+           M.EMPRESA_ORIGEM,
+           M.EMPRESA_DESTINO,
+           M.DATA_TRANSFERENCIA
+      FROM MOV_SEQ M
+      JOIN MAPA_STATS S
+        ON S.COD_CONTRATO = M.COD_CONTRATO
+     WHERE S.QT_EMPRESAS > 2
+),
+
+/* empresas anteriores já percorridas antes de cada etapa */
+EMPRESAS_ANTERIORES AS (
+    SELECT DISTINCT
+           CUR.COD_CONTRATO,
+           CUR.RN              AS RN_ATUAL,
+           ANT.EMPRESA_ORIGEM  AS EMPRESA_ANTERIOR
+      FROM MOV_SEQ CUR
+      JOIN MOV_SEQ ANT
+        ON ANT.COD_CONTRATO = CUR.COD_CONTRATO
+       AND ANT.RN < CUR.RN
+      JOIN MAPA_STATS S
+        ON S.COD_CONTRATO = CUR.COD_CONTRATO
+     WHERE S.QT_EMPRESAS > 2
+
+    UNION
+
+    SELECT DISTINCT
+           CUR.COD_CONTRATO,
+           CUR.RN               AS RN_ATUAL,
+           ANT.EMPRESA_DESTINO  AS EMPRESA_ANTERIOR
+      FROM MOV_SEQ CUR
+      JOIN MOV_SEQ ANT
+        ON ANT.COD_CONTRATO = CUR.COD_CONTRATO
+       AND ANT.RN < CUR.RN
+      JOIN MAPA_STATS S
+        ON S.COD_CONTRATO = CUR.COD_CONTRATO
+     WHERE S.QT_EMPRESAS > 2
+),
+
+/* pares acumulados:
+   ex.: 4->8->6 => 4->6 e 8->6 */
+PARES_ACUM_3MAIS AS (
+    SELECT DISTINCT
+           CUR.COD_CONTRATO,
+           EA.EMPRESA_ANTERIOR AS EMPRESA_ORIGEM,
+           CUR.EMPRESA_DESTINO AS EMPRESA_DESTINO,
+           CUR.DATA_TRANSFERENCIA
+      FROM MOV_SEQ CUR
+      JOIN EMPRESAS_ANTERIORES EA
+        ON EA.COD_CONTRATO = CUR.COD_CONTRATO
+       AND EA.RN_ATUAL     = CUR.RN
+      JOIN MAPA_STATS S
+        ON S.COD_CONTRATO = CUR.COD_CONTRATO
+     WHERE S.QT_EMPRESAS > 2
+       AND EA.EMPRESA_ANTERIOR <> CUR.EMPRESA_DESTINO
+),
+
+PARES_3MAIS_BRUTO AS (
+    SELECT * FROM PARES_IMEDIATOS_3MAIS
+    UNION ALL
+    SELECT * FROM PARES_ACUM_3MAIS
+),
+
+PARES_3MAIS AS (
+    SELECT COD_CONTRATO,
+           EMPRESA_ORIGEM,
+           EMPRESA_DESTINO,
+           DATA_TRANSFERENCIA
+      FROM (
+            SELECT P.*,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY P.COD_CONTRATO,
+                                    P.EMPRESA_ORIGEM,
+                                    P.EMPRESA_DESTINO
+                       ORDER BY P.DATA_TRANSFERENCIA DESC
+                   ) AS RN_PAR
+              FROM PARES_3MAIS_BRUTO P
+           )
+     WHERE RN_PAR = 1
+),
+
+MAPA_FINAL AS (
+    SELECT * FROM PARES_2_EMPRESAS
+    UNION ALL
+    SELECT * FROM PARES_3MAIS
+),
+
+/* =========================================================
+   LÓGICA ORIGINAL DO 1015
+   ========================================================= */
+
+EVENTOS_CARGO AS (
+    SELECT
+        H.COD_CONTRATO,
+        CASE
+            WHEN TRUNC(H.DATA_INICIO) < OK.DATA_ADMISSAO
+            THEN OK.DATA_ADMISSAO
+            ELSE TRUNC(H.DATA_INICIO)
+        END AS DATA_EVENTO,
+        H.COD_CLH AS COD_FUNCAO,
+        H.COD_MOTIVO
+    FROM RHFP0340 H
+    JOIN CONTRATOS_OK OK
+      ON OK.COD_CONTRATO = H.COD_CONTRATO
+    WHERE TRUNC(H.DATA_INICIO) <
+          (SELECT DT_CORTE FROM PARAM)
+      AND EXISTS (
+            SELECT 1
+              FROM MAPA_BASE MB
+             WHERE MB.COD_CONTRATO = H.COD_CONTRATO
+      )
+),
+
+EVENTOS_EMPRESA AS (
+    SELECT
+        O.COD_CONTRATO,
+        TRUNC(O.DATA_INICIO) AS DATA_EVENTO
+    FROM RHFP0310 O
+    JOIN CONTRATOS_OK OK
+      ON OK.COD_CONTRATO = O.COD_CONTRATO
+    JOIN RHFP0401 O2
+      ON O.COD_ORGANOGRAMA = O2.COD_ORGANOGRAMA
+    WHERE O2.COD_NIVEL2 IS NOT NULL
+      AND TRUNC(O.DATA_INICIO) <
+          (SELECT DT_CORTE FROM PARAM)
+      AND EXISTS (
+            SELECT 1
+              FROM MAPA_BASE MB
+             WHERE MB.COD_CONTRATO = O.COD_CONTRATO
+      )
+),
+
+LINHA_TEMPO AS (
+    SELECT COD_CONTRATO, DATA_EVENTO FROM EVENTOS_CARGO
+    UNION
+    SELECT COD_CONTRATO, DATA_EVENTO FROM EVENTOS_EMPRESA
+),
+
+BASE_FINAL_ORIG AS (
+    SELECT
+        L.COD_CONTRATO,
+        L.DATA_EVENTO AS DATA_ALTERACAO,
+
+        /* cargo vigente na data */
+        (
+            SELECT H.COD_CLH
+              FROM RHFP0340 H
+             WHERE H.COD_CONTRATO = L.COD_CONTRATO
+               AND TRUNC(H.DATA_INICIO) <= L.DATA_EVENTO
+             ORDER BY TRUNC(H.DATA_INICIO) DESC
+             FETCH FIRST 1 ROW ONLY
+        ) AS COD_FUNCAO,
+
+        (
+            SELECT H.COD_MOTIVO
+              FROM RHFP0340 H
+             WHERE H.COD_CONTRATO = L.COD_CONTRATO
+               AND TRUNC(H.DATA_INICIO) <= L.DATA_EVENTO
+             ORDER BY TRUNC(H.DATA_INICIO) DESC
+             FETCH FIRST 1 ROW ONLY
+        ) AS COD_MOTIVO,
+
+        /* empresa vigente na data */
+        (
+            SELECT O2.COD_NIVEL2
+              FROM RHFP0310 O,
+                   RHFP0401 O2
+             WHERE O.COD_CONTRATO = L.COD_CONTRATO
+               AND O.COD_ORGANOGRAMA = O2.COD_ORGANOGRAMA
+               AND O2.COD_NIVEL2 IS NOT NULL
+               AND TRUNC(O.DATA_INICIO) <= L.DATA_EVENTO
+               AND TRUNC(NVL(O.DATA_FIM, DATE '2999-12-31')) >= L.DATA_EVENTO
+             ORDER BY TRUNC(O.DATA_INICIO) DESC
+             FETCH FIRST 1 ROW ONLY
+        ) AS COD_EMPRESA
+
+    FROM LINHA_TEMPO L
+),
+
+/* replica somente os dados da origem para os destinos do mapa */
+BASE_REPLICADA AS (
+    SELECT
+        MF.EMPRESA_DESTINO AS COD_EMPRESA,
+        B.COD_CONTRATO,
+        B.DATA_ALTERACAO,
+        B.COD_FUNCAO,
+        B.COD_MOTIVO,
+
+        ROW_NUMBER() OVER (
+            PARTITION BY MF.EMPRESA_DESTINO,
+                         B.COD_CONTRATO,
+                         B.DATA_ALTERACAO,
+                         B.COD_FUNCAO,
+                         NVL(B.COD_MOTIVO, -1)
+            ORDER BY MF.DATA_TRANSFERENCIA DESC,
+                     MF.EMPRESA_ORIGEM
+        ) AS RN_UNICO
+
+    FROM BASE_FINAL_ORIG B
+    JOIN MAPA_FINAL MF
+      ON MF.COD_CONTRATO   = B.COD_CONTRATO
+     AND MF.EMPRESA_ORIGEM = B.COD_EMPRESA
+    WHERE B.COD_EMPRESA IS NOT NULL
+      AND B.COD_FUNCAO IS NOT NULL
+)
+
+SELECT
+    B.COD_EMPRESA AS "codigo_empresa",
+    1 AS "tipo_colaborador",
+    B.COD_CONTRATO AS "cadastro_colaborador",
+    TO_CHAR(MIN(B.DATA_ALTERACAO), 'DD/MM/YYYY') AS "data_alteracao",
+    1 AS "estrutura_cargo",
+    B.COD_FUNCAO AS "codigo_cargo",
+    MIN(
+        CASE
+            WHEN B.COD_MOTIVO = 43 THEN 1
+            WHEN B.COD_MOTIVO = 22 THEN 2
+            WHEN B.COD_MOTIVO = 23 THEN 9
+            WHEN B.COD_MOTIVO IN (6, 90, 100) THEN 3
+            WHEN B.COD_MOTIVO = 24 THEN 4
+            WHEN B.COD_MOTIVO = 25 THEN 5
+            WHEN B.COD_MOTIVO = 26 THEN 12
+            WHEN B.COD_MOTIVO = 485 THEN 10
+            WHEN B.COD_MOTIVO = 421 THEN 15
+            WHEN B.COD_MOTIVO = 429 THEN 16
+            WHEN B.COD_MOTIVO = 431 THEN 11
+            WHEN B.COD_MOTIVO = 459 THEN 17
+            WHEN B.COD_MOTIVO = 479 THEN 13
+            ELSE 999
+        END
+    ) AS "motivo_alteracao"
+FROM BASE_REPLICADA B
+WHERE B.RN_UNICO = 1
+GROUP BY
+    B.COD_CONTRATO,
+    B.COD_EMPRESA,
+    B.COD_FUNCAO
+ORDER BY
+    B.COD_CONTRATO,
+    MIN(B.DATA_ALTERACAO);
+    

@@ -1,5 +1,4 @@
-/* ========================================
-   == SQL 1012 - CADASTRO DE COLABORADOR ==
+/* == SQL 1012 - CADASTRO DE COLABORADOR ==
    ======================================== */
 
 /*== VERSÃO AJUSTADA PARA TRATAR CONTRATOS COM MAIS DE UMA EMPRESA AO LONGO DE SEU CONTRATO ==*/
@@ -19,6 +18,8 @@ WITH base AS (
         v.des_pessoa,
         v.primeiro_nome,
         v.data_admissao,
+		    v.data_avanco,
+        v.funcao,
         v.des_funcao,
         v.sexo,
         v.cod_est_civil,
@@ -45,13 +46,13 @@ WITH base AS (
         v.cod_unidade,
         v.data_opcao_fgts,
         v.nro_conta_fgts
-    FROM v_dados_colab_avt v
+   SELECT * FROM v_dados_colab_avt v
     WHERE NOT EXISTS (
         SELECT 1
         FROM grz_cod_contrato_duas_empresas g
         WHERE g.cod_contrato = v.cod_contrato
     )
-	AND V.DATA_ADMISSAO <= '19/01/2026' --DATA DE CORTE
+  AND V.DATA_ADMISSAO < '23/04/2026' --DATA DE CORTE
 
     UNION ALL
 
@@ -62,6 +63,8 @@ WITH base AS (
         v2.des_pessoa,
         v2.primeiro_nome,
         v2.data_admissao,
+		    v2.data_avanco,
+        v2.funcao,
         v2.des_funcao,
         v2.sexo,
         v2.cod_est_civil,
@@ -94,7 +97,7 @@ WITH base AS (
         FROM grz_cod_contrato_duas_empresas g
         WHERE g.cod_contrato = v2.cod_contrato
     )
-	AND V2.DATA_ADMISSAO <= '19/01/2026' --DATA DE CORTE
+  AND V2.DATA_ADMISSAO < '23/04/2026' --DATA DE CORTE
 ),
 pairs AS (
     /* pares únicos CPF x contrato (pra não sofrer multiplicação das views) */
@@ -118,14 +121,14 @@ SELECT DISTINCT b.cod_emp AS "codigo_empresa",
                 b.cod_contrato AS "cadastro_colaborador",
                 SUBSTR(b.des_pessoa, 1, 40) AS "nome_funcionario",
                 b.primeiro_nome AS "apelido_funcionario",
-                TO_CHAR(b.data_admissao, 'DD/MM/YYYY') AS "data_admissao",
+                TO_CHAR(b.data_avanco, 'DD/MM/YYYY') AS "data_admissao",
                 
                 CASE
-                  WHEN b.des_funcao LIKE 'DIRETOR%' THEN
+                  WHEN b.funcao LIKE 'DIRETOR%' THEN
                    2
-                  WHEN b.des_funcao LIKE '%ESTAGIARIO%' THEN
+                  WHEN b.funcao LIKE '%ESTAGIARIO%' THEN
                    5
-                  WHEN b.des_funcao LIKE '%APRENDIZ%' THEN
+                  WHEN b.funcao LIKE '%APRENDIZ%' THEN
                    6
                   ELSE
                    1
@@ -150,12 +153,49 @@ SELECT DISTINCT b.cod_emp AS "codigo_empresa",
                    9
                 END AS "estado_civil",
                 
-                b.cod_instrucao AS "grau_instrucao",
+                CASE
+                  WHEN B.COD_INSTRUCAO = 1 THEN
+                   1
+                  WHEN B.COD_INSTRUCAO = 2 THEN
+                   1
+                  WHEN B.COD_INSTRUCAO = 3 THEN
+                   3
+                  WHEN B.COD_INSTRUCAO = 4 THEN
+                   4
+                  WHEN B.COD_INSTRUCAO = 5 THEN
+                   5
+                  WHEN B.COD_INSTRUCAO = 6 THEN
+                   6
+                  WHEN B.COD_INSTRUCAO = 7 THEN
+                   7
+                  WHEN B.COD_INSTRUCAO = 8 THEN
+                   8
+                  WHEN B.COD_INSTRUCAO = 9 THEN
+                   9
+                  WHEN B.COD_INSTRUCAO = 10 THEN
+                   14
+                  WHEN B.COD_INSTRUCAO = 11 THEN
+                   10
+                  WHEN B.COD_INSTRUCAO = 12 THEN
+                   15
+                  WHEN B.COD_INSTRUCAO = 13 THEN
+                   11
+                  WHEN B.COD_INSTRUCAO = 14 THEN
+                   16
+                  WHEN B.COD_INSTRUCAO = 15 THEN
+                   12
+                  WHEN B.COD_INSTRUCAO = 16 THEN
+                   17
+                  WHEN B.COD_INSTRUCAO = 17 THEN
+                   13
+                  ELSE
+                   99
+                END AS "grau_instrucao",
                 b.data_nascimento AS "data_nascimento",
                 b.cod_nacionalidade AS "codigo_nacionalidade",
                 TO_CHAR(b.data_cheg_brasil, 'YYYY') AS "ano_chegada",
                 b.class_trab_estrang AS "class_condicao_estrangeiro", --classificacao_condicao_estrangeiro
-                b.nro_carteira_estrang AS "carteira_estrangeiro", 
+                b.nro_carteira_estrang AS "carteira_estrangeiro",
                 
                 NULL AS "data_val_carteira_estrangeiro", --data_validade_carteira_estrangeiro
                 NULL AS "data_val_carteira_trabalho", --data_validade_carteira_trabalho
@@ -174,7 +214,7 @@ SELECT DISTINCT b.cod_emp AS "codigo_empresa",
                 
                 b.cod_banco      AS "codigo_banco",
                 b.cod_age_pgto   AS "codigo_agencia",
-                b.nro_conta_pgto AS "conta_bancaria",
+                0 AS "conta_bancaria",
                 NULL             AS "digito_conta_bancaria",
                 
                 b.cod_tipo_aposent   AS "tipo_aposentadoria",
@@ -242,6 +282,8 @@ SELECT DISTINCT b.cod_emp AS "codigo_empresa",
                 
                 1 AS "local_organograma",
                 1 AS "tabela_organograma"
-  FROM base b
+  FROM base b  
   LEFT JOIN cpf_multi cm
-    ON cm.cpf = b.cpf;
+    ON cm.cpf = b.cpf
+  --WHERE B.COD_CONTRATO = 380848
+  ORDER BY B.COD_CONTRATO
