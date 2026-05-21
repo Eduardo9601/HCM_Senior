@@ -1,16 +1,15 @@
 /* == 1017 - HISTÓRICO DE CENTROS DE CUSTO ==
    ========================================== */
 
-
-/*VERSÃO DEFINITIVA*/
-
+/* VERSÃO SIMPLIFICADA E MAIS ASSERTIVA */
 
 WITH
 PARAM AS (
-  SELECT TO_DATE('23/04/2026','DD/MM/YYYY') AS DT_CORTE FROM DUAL
+  SELECT TO_DATE('23/04/2026','DD/MM/YYYY') AS DT_CORTE
+    FROM DUAL
 ),
 
-/* contratos que EXISTEM no cadastro importado (admitidos até a data corte) */
+/* contratos que EXISTEM no cadastro importado/admitidos até a data corte */
 CONTRATOS_OK AS (
   SELECT C.COD_CONTRATO
     FROM V_DADOS_CONTRATO_AVT C
@@ -20,301 +19,206 @@ CONTRATOS_OK AS (
 ),
 
 /* =========================================================
-   A) MAPA DE CCUs (MESMA LÓGICA DO 1002)
+   BASE ÚNICA DO HISTÓRICO ORGANIZACIONAL DO CONTRATO
    ========================================================= */
+BASE_HIST AS (
+  SELECT
+      O.COD_CONTRATO,
+      O.NOME_PESSOA,
+      O.COD_EMP,
+      O.DES_EMP,
+      O.COD_ORGANOGRAMA,
+      O.DATA_INI_ORG,
+      O.DATA_FIM_ORG,
+      O.COD_UNIDADE,
+      O.COD_TIPO,
+      O.DES_UNIDADE,
+      O.NOME3
+  FROM VH_EST_ORG_CONTRATO_AVT O
+  CROSS JOIN PARAM P
+  WHERE O.COD_CONTRATO IN (SELECT C.COD_CONTRATO FROM CONTRATOS_OK C)
+    AND O.COD_EMP IS NOT NULL
+    AND O.COD_UNIDADE IS NOT NULL
+    AND O.COD_TIPO IN (1, 2, 3, 4)
+    AND O.DATA_INI_ORG < P.DT_CORTE
 
-/* --------- TIPO 2/3 (CCUs empresa 8) --------- */
-BASE_CC AS (
-  SELECT A.COD2 AS COD_EMP,
-         A.COD_TIPO,
-         A.COD_ORGANOGRAMA,
-         A.NOME_ORGANOGRAMA,
-         A.COD_NIVEL_ORG,
-         A.EDICAO_ORG AS UNIDADE,
-         TRIM(REGEXP_REPLACE(A.NOME_ORGANOGRAMA, '\s+', ' ')) AS DES_UNIDADE,
-         A.COD3 AS SUBORDINADO_A,
-         A.DATA_INICIO,
-         A.DATA_FIM
-    FROM V_EST_ORG_AVT A
-   WHERE A.COD2 = 8
-     AND A.COD_TIPO IN (2, 3)
-     AND A.COD_NIVEL_ORG IN (5, 6)
-),
-
-PAI_LVL6_T2 AS (
-  SELECT DISTINCT COD_EMP, UNIDADE, SUBORDINADO_A AS COD_ORG_PAI
-    FROM BASE_CC
-   WHERE COD_TIPO = 2
-     AND COD_NIVEL_ORG = 6
-     AND SUBORDINADO_A IS NOT NULL
-),
-
-CC_FLAGS AS (
-  SELECT B.*,
-         CASE
-           WHEN B.COD_EMP = 8 AND B.COD_TIPO = 3 AND B.UNIDADE = 900 AND B.COD_ORGANOGRAMA = 1503 THEN 1
-           WHEN B.COD_EMP = 8 AND B.COD_TIPO = 2 AND B.UNIDADE = 907 AND B.COD_ORGANOGRAMA = 2159 THEN 1
-           WHEN B.COD_EMP = 8 AND B.COD_TIPO = 2 AND B.UNIDADE = 763 AND B.COD_ORGANOGRAMA = 1639 THEN 1
-           WHEN B.COD_EMP = 8 AND B.COD_TIPO = 2 AND B.UNIDADE = 764 AND B.COD_ORGANOGRAMA = 2188 AND B.SUBORDINADO_A = 2266 THEN 1
-           WHEN B.COD_EMP = 8 AND B.COD_TIPO = 2 AND B.UNIDADE = 768 AND B.COD_ORGANOGRAMA = 1641 THEN 1
-           WHEN B.COD_EMP = 8 AND B.COD_TIPO = 2 AND B.UNIDADE = 769 AND B.COD_ORGANOGRAMA = 1764 THEN 1
-           WHEN B.COD_EMP = 8 AND B.COD_TIPO = 2 AND B.UNIDADE = 771 AND B.COD_ORGANOGRAMA = 1643 THEN 1
-           ELSE 0
-         END AS IS_FORCED,
-
-         CASE
-           WHEN B.COD_TIPO = 2
-            AND B.COD_NIVEL_ORG = 5
-            AND EXISTS (
-                 SELECT 1
-                   FROM PAI_LVL6_T2 P
-                  WHERE P.COD_EMP     = B.COD_EMP
-                    AND P.UNIDADE     = B.UNIDADE
-                    AND P.COD_ORG_PAI = B.COD_ORGANOGRAMA
-               )
-           THEN 1 ELSE 0
-         END AS IS_PAI_DE_NIVEL6
-    FROM BASE_CC B
-),
-
-RANKED_CC AS (
-  SELECT F.*,
-         ROW_NUMBER() OVER (
-           PARTITION BY F.COD_EMP, F.UNIDADE
-           ORDER BY
-             CASE WHEN F.IS_FORCED = 1 THEN 0 ELSE 1 END,
-             CASE WHEN F.IS_PAI_DE_NIVEL6 = 1 THEN 0 ELSE 1 END,
-             CASE WHEN F.COD_TIPO = 2 THEN 0 ELSE 1 END,
-             CASE WHEN F.COD_NIVEL_ORG = 5 THEN 0 ELSE 1 END,
-             F.COD_ORGANOGRAMA
-         ) AS RN
-    FROM CC_FLAGS F
-),
-
-CC_CANON AS (
-  SELECT COD_EMP, COD_TIPO, UNIDADE, PRI, COD_ORGANOGRAMA
-    FROM (
-      SELECT COD_EMP,
-             COD_TIPO,
-             UNIDADE,
-             CASE WHEN IS_FORCED = 1 THEN 0 ELSE 1 END AS PRI,
-             COD_ORGANOGRAMA,
-             RN
-        FROM RANKED_CC
-    )
-   WHERE RN = 1
-),
-
-/* --------- LOJAS (TIPO 1) empresa 8 --------- */
-BASE_LOJAS AS (
-  SELECT A.COD2 AS COD_EMP,
-         1 AS COD_TIPO,
-         A.COD_ORGANOGRAMA,
-         A.NOME_ORGANOGRAMA,
-         A.EDICAO_ORG AS UNIDADE
-    FROM V_EST_ORG_AVT A
-    JOIN V_EST_ORG_AVT B ON A.EDICAO_ORG = B.EDICAO_ORG
-   WHERE A.COD_NIVEL_ORG = 5
-     AND B.COD_NIVEL_ORG = 3
-     AND A.COD_TIPO = 1
-     AND A.COD2 = 8
-     AND B.COD2 = 8
-    -- AND B.EDICAO_ORG NOT IN ('157','173','549','7549')
-
-  UNION ALL
-
-  SELECT B.COD2 AS COD_EMP,
-         1 AS COD_TIPO,
-         B.COD_ORGANOGRAMA,
-         B.NOME_ORGANOGRAMA,
-         B.EDICAO_ORG AS UNIDADE
-    FROM V_EST_ORG_AVT B
-   WHERE B.COD_NIVEL_ORG = 3
-     AND B.COD2 = 8
-     --AND B.EDICAO_ORG IN ('549','7549')
-),
-
-LOJAS_CANON AS (
-  SELECT COD_EMP, COD_TIPO, UNIDADE, 2 AS PRI, COD_ORGANOGRAMA
-    FROM (
-      SELECT L.*,
-             ROW_NUMBER() OVER(PARTITION BY L.COD_EMP, L.UNIDADE ORDER BY L.COD_ORGANOGRAMA) RN
-        FROM BASE_LOJAS L
-    )
-   WHERE RN = 1
-),
-
-/* --------- COLIGADAS (TIPO 4) todas empresas --------- */
-BASE_T4 AS (
-  SELECT A.COD2 AS COD_EMP,
-         4 AS COD_TIPO,
-         A.COD_ORGANOGRAMA,
-         A.NOME_ORGANOGRAMA,
-         A.COD_NIVEL_ORG,
-         A.EDICAO_ORG AS UNIDADE,
-         A.COD3 AS SUBORDINADO_A,
-         A.DATA_INICIO,
-         A.DATA_FIM
-    FROM V_EST_ORG_AVT A
-   WHERE A.COD_TIPO = 4
-     AND A.COD_NIVEL_ORG IN (5, 6)
-),
-
-T4_CHILD AS (
-  SELECT COD_EMP, SUBORDINADO_A AS COD_ORG_PAI, COUNT(*) AS QTD_FILHOS
-    FROM BASE_T4
-   WHERE SUBORDINADO_A IS NOT NULL
-   GROUP BY COD_EMP, SUBORDINADO_A
-),
-
-COLIGADAS_CANON AS (
-  SELECT COD_EMP, COD_TIPO, UNIDADE, 3 AS PRI, COD_ORGANOGRAMA
-    FROM (
-      SELECT B.COD_EMP,
-             4 AS COD_TIPO,
-             B.UNIDADE,
-             B.COD_ORGANOGRAMA,
-             B.NOME_ORGANOGRAMA,
-             ROW_NUMBER() OVER(
-               PARTITION BY B.COD_EMP, B.UNIDADE
-               ORDER BY
-                 CASE WHEN NVL(C.QTD_FILHOS,0) > 0 THEN 0 ELSE 1 END,
-                 CASE WHEN B.COD_NIVEL_ORG = 6 THEN 0 ELSE 1 END,
-                 NVL(B.DATA_FIM, DATE '2999-12-31') DESC,
-                 B.COD_ORGANOGRAMA
-             ) RN
-        FROM BASE_T4 B
-        LEFT JOIN T4_CHILD C
-          ON C.COD_EMP = B.COD_EMP
-         AND C.COD_ORG_PAI = B.COD_ORGANOGRAMA
-    )
-   WHERE RN = 1
-),
-
-/* ======= MAPA determinístico: 1 linha por (empresa, unidade) =======
-   prioridade: CC (2/3) primeiro, depois coligadas (4), depois lojas (1)
-*/
-CCU_MAP AS (
-  SELECT COD_EMP,
-         UNIDADE_NUM,
-         CODCCU
-    FROM (
-      SELECT X.COD_EMP,
-             TO_NUMBER(NULLIF(REGEXP_REPLACE(TO_CHAR(X.UNIDADE), '\D', ''), '')) AS UNIDADE_NUM,
-             CASE
-               WHEN X.COD_TIPO = 2 THEN 1 || TO_CHAR(X.UNIDADE)
-               WHEN X.COD_TIPO = 3 THEN 13 || TO_CHAR(X.UNIDADE)
-               ELSE TO_CHAR(X.UNIDADE)
-             END AS CODCCU,
-             ROW_NUMBER() OVER(
-               PARTITION BY X.COD_EMP, TO_NUMBER(NULLIF(REGEXP_REPLACE(TO_CHAR(X.UNIDADE), '\D', ''), ''))
-               ORDER BY
-                 /* tipo 2/3 ganha, depois 4, depois 1 */
-                 CASE
-                   WHEN X.COD_TIPO IN (2,3) THEN 0
-                   WHEN X.COD_TIPO = 4 THEN 1
-                   ELSE 2
-                 END,
-                 X.PRI,
-                 X.COD_ORGANOGRAMA
-             ) RN
-        FROM (
-          SELECT COD_EMP, COD_TIPO, UNIDADE, PRI, COD_ORGANOGRAMA FROM CC_CANON
-          UNION ALL
-          SELECT COD_EMP, COD_TIPO, UNIDADE, PRI, COD_ORGANOGRAMA FROM COLIGADAS_CANON
-          UNION ALL
-          SELECT COD_EMP, COD_TIPO, UNIDADE, PRI, COD_ORGANOGRAMA FROM LOJAS_CANON
-        ) X
-    )
-   WHERE RN = 1
+    /* use para testar contrato específico */
+    --AND O.COD_CONTRATO = 389622
 ),
 
 /* =========================================================
-   B) HISTÓRICO DO COLABORADOR (COM DATA CORTE + SEM REPETIR CCU)
+   BLOCO 1 - LOJAS
+   Regra: centro de custo = unidade
    ========================================================= */
-ORG_RAW_CCU AS (
+LOJAS AS (
   SELECT
-      O.COD_CONTRATO,
-      O.COD_EMP,
-      O.DATA_INI_ORG,
-      O.DATA_FIM_ORG,
-      TO_NUMBER(NULLIF(REGEXP_REPLACE(TO_CHAR(O.COD_UNIDADE), '\D', ''), '')) AS UNIDADE_NUM,
-      O.COD_ORGANOGRAMA,
-      O.DES_UNIDADE,
-      O.NOME3,
-      ROW_NUMBER() OVER (
-        PARTITION BY O.COD_CONTRATO, O.COD_EMP, O.DATA_INI_ORG,
-                     TO_NUMBER(NULLIF(REGEXP_REPLACE(TO_CHAR(O.COD_UNIDADE), '\D', ''), ''))
-        ORDER BY NVL(O.DATA_FIM_ORG, DATE '2999-12-31') DESC, O.COD_ORGANOGRAMA
-      ) AS RN_DEDUP
-  FROM VH_EST_ORG_CONTRATO_AVT O
-  CROSS JOIN PARAM P
-  WHERE O.COD_EMP IS NOT NULL
-    AND O.COD_UNIDADE IS NOT NULL
-    AND O.COD_CONTRATO IN (SELECT COD_CONTRATO FROM CONTRATOS_OK)
-    AND TRUNC(O.DATA_INI_ORG) < P.DT_CORTE
+      B.COD_CONTRATO,
+      B.NOME_PESSOA,
+      B.COD_EMP,
+      B.DES_EMP,
+      B.COD_ORGANOGRAMA,
+      B.DATA_INI_ORG,
+      B.DATA_FIM_ORG,
+      B.COD_UNIDADE,
+      TO_CHAR(B.COD_UNIDADE) AS CENTRO_CUSTO,
+      B.COD_TIPO,
+      B.DES_UNIDADE,
+      B.NOME3,
+      'LOJAS' AS BLOCO_ORIGEM
+  FROM BASE_HIST B
+  WHERE B.COD_TIPO = 1
 ),
 
-ORG_BASE_CCU AS (
-  SELECT * FROM ORG_RAW_CCU WHERE RN_DEDUP = 1
+/* =========================================================
+   BLOCO 2 - ADM
+   Regra: centro de custo = 1 || unidade
+   Exemplo: unidade 763 vira 1763
+   ========================================================= */
+ADM AS (
+  SELECT
+      B.COD_CONTRATO,
+      B.NOME_PESSOA,
+      B.COD_EMP,
+      B.DES_EMP,
+      B.COD_ORGANOGRAMA,
+      B.DATA_INI_ORG,
+      B.DATA_FIM_ORG,
+      B.COD_UNIDADE,
+      '1' || TO_CHAR(B.COD_UNIDADE) AS CENTRO_CUSTO,
+      B.COD_TIPO,
+      B.DES_UNIDADE,
+      B.NOME3,
+      'ADM' AS BLOCO_ORIGEM
+  FROM BASE_HIST B
+  WHERE B.COD_TIPO = 2
 ),
 
-ORG_CHG_CCU AS (
-  SELECT B.*,
-         LAG(B.COD_EMP) OVER(
-           PARTITION BY B.COD_CONTRATO
-           ORDER BY B.DATA_INI_ORG, NVL(B.DATA_FIM_ORG, DATE '2999-12-31'), B.COD_ORGANOGRAMA
-         ) AS EMP_ANTERIOR,
-         LAG(B.UNIDADE_NUM) OVER(
-           PARTITION BY B.COD_CONTRATO
-           ORDER BY B.DATA_INI_ORG, NVL(B.DATA_FIM_ORG, DATE '2999-12-31'), B.COD_ORGANOGRAMA
-         ) AS CCU_ANTERIOR
-    FROM ORG_BASE_CCU B
+/* =========================================================
+   BLOCO 3 - CD
+   Regra: centro de custo = 13 || unidade
+   Exemplo: unidade 900 vira 13900
+   ========================================================= */
+CD AS (
+  SELECT
+      B.COD_CONTRATO,
+      B.NOME_PESSOA,
+      B.COD_EMP,
+      B.DES_EMP,
+      B.COD_ORGANOGRAMA,
+      B.DATA_INI_ORG,
+      B.DATA_FIM_ORG,
+      B.COD_UNIDADE,
+      '13' || TO_CHAR(B.COD_UNIDADE) AS CENTRO_CUSTO,
+      B.COD_TIPO,
+      B.DES_UNIDADE,
+      B.NOME3,
+      'CD' AS BLOCO_ORIGEM
+  FROM BASE_HIST B
+  WHERE B.COD_TIPO = 3
 ),
 
-ORG_MOV_CCU AS (
-  SELECT *
-    FROM ORG_CHG_CCU
-   WHERE EMP_ANTERIOR IS NULL
-      OR COD_EMP <> EMP_ANTERIOR
-      OR CCU_ANTERIOR IS NULL
-      OR UNIDADE_NUM <> CCU_ANTERIOR
+/* =========================================================
+   BLOCO 4 - COLIGADAS
+   Regra: centro de custo = unidade
+   ========================================================= */
+COLIGADAS AS (
+  SELECT
+      B.COD_CONTRATO,
+      B.NOME_PESSOA,
+      B.COD_EMP,
+      B.DES_EMP,
+      B.COD_ORGANOGRAMA,
+      B.DATA_INI_ORG,
+      B.DATA_FIM_ORG,
+      B.COD_UNIDADE,
+      TO_CHAR(B.COD_UNIDADE) AS CENTRO_CUSTO,
+      B.COD_TIPO,
+      B.DES_UNIDADE,
+      B.NOME3,
+      'COLIGADAS' AS BLOCO_ORIGEM
+  FROM BASE_HIST B
+  WHERE B.COD_TIPO = 4
 ),
 
-/* não repetir o mesmo CCU dentro da mesma empresa pro mesmo contrato */
-ORG_UNIQ_CCU AS (
+/* =========================================================
+   UNE TODOS OS BLOCOS EM UMA ÚNICA BASE
+   ========================================================= */
+HIST_UNIFICADO AS (
+  SELECT * FROM LOJAS
+  UNION ALL
+  SELECT * FROM ADM
+  UNION ALL
+  SELECT * FROM CD
+  UNION ALL
+  SELECT * FROM COLIGADAS
+),
+
+/* =========================================================
+   REMOVE DUPLICIDADE EXATA DO MESMO CONTRATO/DATA/CCU
+   Mantém a linha mais "atual" pelo DATA_FIM_ORG e ORGANOGRAMA
+   ========================================================= */
+HIST_DEDUP AS (
   SELECT *
     FROM (
-      SELECT M.*,
-             ROW_NUMBER() OVER(
-               PARTITION BY M.COD_CONTRATO, M.COD_EMP, M.UNIDADE_NUM
-               ORDER BY M.DATA_INI_ORG, NVL(M.DATA_FIM_ORG, DATE '2999-12-31'), M.COD_ORGANOGRAMA
-             ) RN_UNIQ
-        FROM ORG_MOV_CCU M
+      SELECT H.*,
+             ROW_NUMBER() OVER (
+               PARTITION BY
+                    H.COD_CONTRATO,
+                    H.COD_EMP,
+                    H.DATA_INI_ORG,
+                    H.CENTRO_CUSTO
+               ORDER BY
+                    NVL(H.DATA_FIM_ORG, DATE '2999-12-31') DESC,
+                    H.COD_ORGANOGRAMA DESC
+             ) AS RN_DEDUP
+        FROM HIST_UNIFICADO H
     )
-   WHERE RN_UNIQ = 1
+   WHERE RN_DEDUP = 1
+),
+
+/* =========================================================
+   IDENTIFICA MUDANÇA REAL DE CENTRO DE CUSTO
+   Remove apenas repetição sequencial do mesmo CCU
+   ========================================================= */
+HIST_COMPARA AS (
+  SELECT H.*,
+         LAG(H.COD_EMP) OVER (
+           PARTITION BY H.COD_CONTRATO
+           ORDER BY
+                H.DATA_INI_ORG,
+                NVL(H.DATA_FIM_ORG, DATE '2999-12-31'),
+                H.COD_ORGANOGRAMA
+         ) AS COD_EMP_ANT,
+
+         LAG(H.CENTRO_CUSTO) OVER (
+           PARTITION BY H.COD_CONTRATO
+           ORDER BY
+                H.DATA_INI_ORG,
+                NVL(H.DATA_FIM_ORG, DATE '2999-12-31'),
+                H.COD_ORGANOGRAMA
+         ) AS CENTRO_CUSTO_ANT
+    FROM HIST_DEDUP H
+),
+
+HIST_FINAL AS (
+  SELECT *
+    FROM HIST_COMPARA
+   WHERE COD_EMP_ANT IS NULL
+      OR COD_EMP <> COD_EMP_ANT
+      OR CENTRO_CUSTO <> CENTRO_CUSTO_ANT
 )
 
 SELECT
-    U.COD_EMP      AS "codigo_empresa",
-    1              AS "tipo_colaborador",
-    U.COD_CONTRATO AS "cadastro_colaborador",
-    TO_CHAR(U.DATA_INI_ORG, 'DD/MM/YYYY') AS "data_alteracao",
-    M.CODCCU       AS "codigo_centro_custos"
-    --U.DES_UNIDADE,
-    --U.NOME3
-FROM ORG_UNIQ_CCU U
-JOIN CCU_MAP M
-  ON M.COD_EMP = U.COD_EMP
- AND M.UNIDADE_NUM = U.UNIDADE_NUM
-/*WHERE U.COD_CONTRATO IN (245372,  247618,  250597,  254177,  256871,  263699,  264466,  268186,  269263,  270598,  
-271705,  280402,  283517,  288683,  299880,  299910,  294390,  296279,  296635,  304522,  
-307450,  317012,  329053,  336840,  354481,  363600,  363618,  363626,  363596,  367850,  
-372510,  374784,  375667,  376386,  376447,  376575,  376654,  377839,  387774,  388406,  
-378941,  383496,  379601,  379794,  387305,  379980,  380004,  384247,  384248,  380122,  
-382329,  382408,  386844,  382473,  382501,  382555,  380384,  380414,  380415,  382589,  
-384616,  387105,  378450)*/  
-ORDER BY U.COD_CONTRATO, U.COD_EMP, U.DATA_INI_ORG;
-
-
-
+    F.COD_EMP       AS "codigo_empresa",
+    1               AS "tipo_colaborador",
+    F.COD_CONTRATO  AS "cadastro_colaborador",
+    TO_CHAR(F.DATA_INI_ORG, 'DD/MM/YYYY') AS "data_alteracao",
+    F.CENTRO_CUSTO  AS "codigo_centro_custos"
+FROM HIST_FINAL F
+--WHERE F.COD_CONTRATO = 388606
+ORDER BY
+    F.COD_CONTRATO,
+    F.DATA_INI_ORG,
+    F.COD_EMP,
+    F.CENTRO_CUSTO;
+    
