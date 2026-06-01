@@ -46,6 +46,8 @@ BASE_HIST AS (
     --AND O.COD_CONTRATO = 389622
 ),
 
+
+
 /* =========================================================
    BLOCO 1 - LOJAS
    Regra: centro de custo = unidade
@@ -213,12 +215,18 @@ SELECT
     1               AS "tipo_colaborador",
     F.COD_CONTRATO  AS "cadastro_colaborador",
     TO_CHAR(F.DATA_INI_ORG, 'DD/MM/YYYY') AS "data_alteracao",
-    F.CENTRO_CUSTO  AS "codigo_centro_custos"
+    F.CENTRO_CUSTO  AS "codigo_centro_custos",
+    F.COD_UNIDADE
 FROM HIST_FINAL F
---WHERE F.COD_CONTRATO = 388606
+--WHERE F.COD_UNIDADE = 13
+--AND F.COD_EMP = 8
 ORDER BY
     F.COD_CONTRATO,
     F.DATA_INI_ORG,
     F.COD_EMP,
     F.CENTRO_CUSTO;
     
+
+
+
+

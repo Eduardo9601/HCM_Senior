@@ -20,8 +20,8 @@ SELECT q."codigo_empresa",
                         a.cod_contrato AS "cadastro_colaborador",
                         a1.cod_mestre_evento AS "codigo_calculo",
                         EV.COD_EVENTO AS "codigo_evento",                  
-                        TO_CHAR(ROUND(NVL(a.QTDE_VD, 0), 2), 'FM9999999990D00') AS "referencia_evento",
-                        TO_CHAR(ROUND(NVL(a.VALOR_VD, 0), 2), 'FM9999999990D00') AS "valor_evento",
+                        0 AS "referencia_evento",
+                        ROUND(NVL(a.valor_vd, 0)) AS "valor_evento",
                         null as "codigo_rubrica",
                         null as "fator_rubrica",
                         null as "origem_evento",
@@ -75,10 +75,10 @@ SELECT q."codigo_empresa",
           JOIN TB_EVENTOS_VD EV
             ON A.COD_VD = EV.COD_VD
 
-          JOIN (SELECT C.COD_CONTRATO
+          JOIN (SELECT C.COD_CONTRATO, C.DATA_AVANCO
                 FROM V_DADOS_CONTRATO_AVT C
-               GROUP BY C.COD_CONTRATO
-              HAVING MIN(NVL(TRUNC(C.DATA_ADMISSAO), DATE '1900-01-01')) < '01/05/2026') OK
+               GROUP BY C.COD_CONTRATO, C.DATA_AVANCO
+              HAVING MIN(NVL(TRUNC(C.DATA_AVANCO), DATE '1900-01-01')) < '01/05/2026') OK
             ON OK.COD_CONTRATO = A.COD_CONTRATO
 
          OUTER APPLY (
@@ -135,7 +135,8 @@ SELECT q."codigo_empresa",
            AND C.TIPO_VD NOT IN ('B', 'O')
 
            -- Período (agora será anual pelo loop, mas o filtro segue igual)
-           AND TRUNC(a1.data_referencia) BETWEEN TRUNC(pc_ini) AND TRUNC(pc_fim)) q
+           AND TRUNC(a1.data_referencia) BETWEEN '01/01/2025' AND '31/12/2025' --TRUNC(pc_ini) AND TRUNC(pc_fim)
+           ) q
 
  ORDER BY q.ord_mes,
           q.ord_ref,

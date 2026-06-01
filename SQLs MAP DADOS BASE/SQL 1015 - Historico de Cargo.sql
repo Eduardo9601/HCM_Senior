@@ -147,7 +147,12 @@ ORDER BY
     
     
     
-/*VERSÃO COM TRATAMENTO APENAS COM OS COLABORADORES COM MAIS DE UMA EMPRESA*/    
+/*==================================================================================*/
+
+
+
+/*VERSÃO COM TRATAMENTO DOS COLABORADORES TRANSFERIDOS*/
+ 
  
 WITH
 PARAM AS (
@@ -478,4 +483,3 @@ GROUP BY
 ORDER BY
     B.COD_CONTRATO,
     MIN(B.DATA_ALTERACAO);
-    

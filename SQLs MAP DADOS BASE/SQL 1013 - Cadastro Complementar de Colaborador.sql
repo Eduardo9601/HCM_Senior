@@ -175,20 +175,3 @@ LEFT JOIN GRZ_TMP_PAISES_HCM P2 ON P2.CODIGO_PAIS_RFB = A2.COD_PAIS
 where A2.cod_contrato in (select cod_contrato from grz_cod_contrato_duas_empresas)
   --and A2.cod_ibge is NOT null
   AND A2.DATA_ADMISSAO < '23/04/2026' --DATA DE CORTE;
-  
-
-
-
-
-
-/*
-
-SELECT * FROM V_DADOS_COLAB_AVT
-WHERE STATUS = 0
-AND COD_NACIONALIDADE <> 10
-
-select * from GRZ_TMP_PAISES_HCM
-
-
-select * from GRZ_TMP_NACIONALIDADES_HCM
-*/

@@ -46,7 +46,7 @@ WITH base AS (
         v.cod_unidade,
         v.data_opcao_fgts,
         v.nro_conta_fgts
-   SELECT * FROM v_dados_colab_avt v
+   FROM v_dados_colab_avt v
     WHERE NOT EXISTS (
         SELECT 1
         FROM grz_cod_contrato_duas_empresas g
@@ -285,5 +285,5 @@ SELECT DISTINCT b.cod_emp AS "codigo_empresa",
   FROM base b  
   LEFT JOIN cpf_multi cm
     ON cm.cpf = b.cpf
-  --WHERE B.COD_CONTRATO = 380848
+  --WHERE B.COD_CONTRATO = 307416
   ORDER BY B.COD_CONTRATO

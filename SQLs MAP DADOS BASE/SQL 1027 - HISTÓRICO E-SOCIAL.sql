@@ -88,52 +88,5 @@ SELECT codigo_empresa        AS "codigo_empresa",
        data_alteracao        AS "data_alteracao",
        categoria_colaborador AS "categoria_colaborador"
   FROM BASE
- --WHERE CADASTRO_COLABORADOR = 43
+ WHERE CADASTRO_COLABORADOR = 352683
  ORDER BY cadastro_colaborador, data_alteracao;
-
-
-
-
-
-
-/* 
-
-->VALIDADORES
-
-select * from rhfp0310
-where cod_contrato = 2968
-
-
-SELECT DISTINCT(TABLE_NAME) 
-FROM ALL_TAB_COLUMNS 
-WHERE UPPER (TABLE_NAME) LIKE '%RH%'
-AND COLUMN_NAME LIKE '%COD_CATEGORIA_TRAB%'
-
-
-
-SELECT * FROM RHRLSE30;
-SELECT * FROM RHMUSE30;
-SELECT * FROM RHFP0128;
-SELECT * FROM RHPS0101;
-SELECT * FROM RHRLSE32;
-SELECT * FROM RHFP0300;
-SELECT * FROM RHRL0365;
-SELECT * FROM RHRLSE14;
-SELECT * FROM RHRL0045;
-SELECT * FROM RHFP0805;
-SELECT * FROM RHFP0301;
-SELECT * FROM RHPS0100;
-SELECT * FROM RHRLSE13;
-
-*/
-
-
-
-
-
-
-
-
-
-
-

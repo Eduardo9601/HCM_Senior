@@ -1,325 +1,319 @@
 /* == SQL 1021 - HISTORICO DE FILIAL ==
    ==================================== */
-   
-/*VERSÃO 1 DEFINITIVA - ANTERIOR*/
 
-/*=== 1021 - HISTÓRICO DE FILIAIS (ATÉ DATA CORTE) ===*/
-
-WITH
-PARAM AS (
-  SELECT TO_DATE('23/04/2026','DD/MM/YYYY') AS DT_CORTE FROM DUAL
-),
-
-/* 0) contratos permitidos (admitidos até a data de corte) */
-CONTRATOS_OK AS (
-  SELECT C.COD_CONTRATO
-    FROM V_DADOS_CONTRATO_AVT C
-   CROSS JOIN PARAM P
-   GROUP BY C.COD_CONTRATO, P.DT_CORTE
-  HAVING MIN(TRUNC(C.DATA_ADMISSAO)) < P.DT_CORTE 
-),
-
-/* 1) Histórico bruto (empresa + filial por data) */
-ORG_RAW AS (
-  SELECT
-      O.COD_CONTRATO,
-      O.COD_EMP,
-      O.DATA_INI_ORG,
-      O.DATA_FIM_ORG,
-      O.EDICAO_ORG_3 AS CODIGO_NOVA_FILIAL,
-      O.COD_UNIDADE,
-      O.COD_ORGANOGRAMA,
-      ROW_NUMBER() OVER (
-        PARTITION BY O.COD_CONTRATO, O.COD_EMP, O.DATA_INI_ORG, O.EDICAO_ORG_3
-        ORDER BY NVL(O.DATA_FIM_ORG, DATE '2999-12-31') DESC, O.COD_ORGANOGRAMA
-      ) AS RN_DEDUP
-  FROM VH_EST_ORG_CONTRATO_AVT O
-  CROSS JOIN PARAM P
-  WHERE O.COD_EMP IS NOT NULL
-    AND O.EDICAO_ORG_3 IS NOT NULL
-    AND O.EDICAO_ORG_3 NOT IN ('157','173')
-    /* >>> AQUI é o pulo do gato: só contratos já importados (até a data corte) */
-    AND O.COD_CONTRATO IN (SELECT COD_CONTRATO FROM CONTRATOS_OK)
-    /* opcional: se tu quer cortar o histórico também pela data do evento */
-    AND TRUNC(O.DATA_INI_ORG) < P.DT_CORTE
-),
-
-/* 2) remove duplicata exata */
-ORG_BASE AS (
-  SELECT *
-  FROM ORG_RAW
-  WHERE RN_DEDUP = 1
-),
-
-/* 3) detecta mudança real (empresa OU filial) */
-ORG_CHANGES AS (
-  SELECT
-      B.*,
-      LAG(B.COD_EMP) OVER (
-        PARTITION BY B.COD_CONTRATO
-        ORDER BY B.DATA_INI_ORG, NVL(B.DATA_FIM_ORG, DATE '2999-12-31'), B.COD_ORGANOGRAMA
-      ) AS EMP_ANTERIOR,
-      LAG(B.CODIGO_NOVA_FILIAL) OVER (
-        PARTITION BY B.COD_CONTRATO
-        ORDER BY B.DATA_INI_ORG, NVL(B.DATA_FIM_ORG, DATE '2999-12-31'), B.COD_ORGANOGRAMA
-      ) AS FILIAL_ANTERIOR
-  FROM ORG_BASE B
-),
-
-/* 4) mantém só mudanças (remove repetição em sequência) */
-ORG_MOV AS (
-  SELECT *
-  FROM ORG_CHANGES OC
-  WHERE (OC.EMP_ANTERIOR IS NULL OR OC.COD_EMP <> OC.EMP_ANTERIOR
-     OR  OC.FILIAL_ANTERIOR IS NULL OR OC.CODIGO_NOVA_FILIAL <> OC.FILIAL_ANTERIOR)
-),
-
-/* 5) compacta: garante 1 vez por (contrato, empresa, filial) */
-ORG_UNIQ AS (
-  SELECT *
-  FROM (
-    SELECT M.*,
-           ROW_NUMBER() OVER(
-             PARTITION BY M.COD_CONTRATO, M.COD_EMP, M.CODIGO_NOVA_FILIAL
-             ORDER BY M.DATA_INI_ORG, NVL(M.DATA_FIM_ORG, DATE '2999-12-31'), M.COD_ORGANOGRAMA
-           ) AS RN_UNIQ
-    FROM ORG_MOV M
-  )
-  WHERE RN_UNIQ = 1
-),
-
-/* 5.1) identifica empresa de admissão e empresa atual do colaborador */
-EMPRESA_REF AS (
-  SELECT
-      X.COD_CONTRATO,
-
-      /* primeira empresa histórica = empresa de admissão/origem */
-      MIN(X.COD_EMP) KEEP (
-        DENSE_RANK FIRST ORDER BY X.DATA_INI_ORG, X.COD_ORGANOGRAMA
-      ) AS EMPRESA_ADMISSAO,
-
-      /* última empresa histórica = empresa atual do colaborador */
-      MIN(X.COD_EMP) KEEP (
-        DENSE_RANK LAST ORDER BY X.DATA_INI_ORG, NVL(X.DATA_FIM_ORG, DATE '2999-12-31'), X.COD_ORGANOGRAMA
-      ) AS EMPRESA_ATUAL
-
-  FROM ORG_BASE X
-  GROUP BY X.COD_CONTRATO
-),
-
-/* 6) dados do contrato (qualquer linha válida; não depende de 2999) */
-CT_CANON AS (
-  SELECT COD_CONTRATO,
-         CASE WHEN COD_TIPO_ADMISSAO = 5 THEN 6 ELSE COD_TIPO_ADMISSAO END AS TIPO_ADMISSAO,
-         NUM_FICHA_REGISTRO
-  FROM (
-    SELECT C.*,
-           ROW_NUMBER() OVER (
-             PARTITION BY C.COD_CONTRATO
-             ORDER BY
-               CASE WHEN C.NUM_FICHA_REGISTRO IS NOT NULL THEN 0 ELSE 1 END,
-               CASE WHEN C.DATA_FIM_FICHA = DATE '2999-12-31' THEN 0 ELSE 1 END,
-               NVL(C.DATA_FIM_FICHA, DATE '1900-01-01') DESC,
-               NVL(C.DATA_INI_FICHA, DATE '1900-01-01') DESC
-           ) RN
-      FROM V_DADOS_CONTRATO_AVT C
-     WHERE C.COD_CONTRATO IN (SELECT DISTINCT COD_CONTRATO FROM ORG_UNIQ)
-  )
-  WHERE RN = 1
-)
-
-SELECT
-    U.COD_EMP AS "codigo_empresa",
-    1 AS "tipo_colaborador",
-    U.COD_CONTRATO AS "cadastro_colaborador",
-    TO_CHAR(U.DATA_INI_ORG, 'DD/MM/YYYY') AS "data_alteracao",
-    ER.EMPRESA_ATUAL AS "codigo_nova_empresa",
-    U.COD_CONTRATO AS "codigo_novo_cadastro",
-    U.CODIGO_NOVA_FILIAL AS "codigo_nova_filial",
-    C.TIPO_ADMISSAO AS "tipo_admissao",
-    NVL(C.NUM_FICHA_REGISTRO, 0) AS "numero_ficha_registro",
-    CASE
-        WHEN U.COD_EMP = ER.EMPRESA_ADMISSAO THEN 
-          1
-        ELSE 
-          2
-    END AS "tipo_admissao_colaborador"
-FROM ORG_UNIQ U
-LEFT JOIN CT_CANON C
-  ON C.COD_CONTRATO = U.COD_CONTRATO
-JOIN EMPRESA_REF ER
-  ON ER.COD_CONTRATO = U.COD_CONTRATO
-WHERE U.COD_CONTRATO = 393398 --393398
-ORDER BY U.COD_CONTRATO, U.DATA_INI_ORG;
-
-
-
-
-/*==========================================================================*/
-
-
-
-/*==== VERSÃO 2 ALTERNATIVA - OFICIAL ===*/
-
-/* == SQL 1021 - HISTORICO DE FILIAL ==
-   ==================================== */
-   
-/*VERSÃO DEFINITIVA*/
-
-/*=== 1021 - HISTÓRICO DE FILIAIS (ATÉ DATA CORTE) ===*/
+/*==== VERSÃO AJUSTADA - MANTÉM RETORNO PARA MESMA FILIAL EM DATAS DIFERENTES
+       REMOVE APENAS FILIAL REPETIDA EM SEQUÊNCIA ===*/
 
 WITH
-PARAM AS (
-  SELECT TO_DATE('23/04/2026','DD/MM/YYYY') AS DT_CORTE FROM DUAL
+PARAMETROS AS (
+    SELECT TO_DATE('23/04/2026','DD/MM/YYYY') AS DT_CORTE
+    FROM DUAL
 ),
 
-/* 0) Contratos válidos (admitidos até a data de corte) */
-CONTRATOS_OK AS (
-  SELECT C.COD_CONTRATO
-  FROM V_DADOS_CONTRATO_AVT C
-  CROSS JOIN PARAM P
-  GROUP BY C.COD_CONTRATO, P.DT_CORTE
-  HAVING MIN(TRUNC(C.DATA_ADMISSAO)) < P.DT_CORTE
-),
-
-/* 1) Histórico organizacional bruto */
-ORG_RAW AS (
-  SELECT
-      O.COD_CONTRATO,
-      O.COD_EMP,
-      O.DATA_INI_ORG,
-      O.DATA_FIM_ORG,
-      O.EDICAO_ORG_3 AS CODIGO_NOVA_FILIAL,
-      O.COD_UNIDADE,
-      O.COD_ORGANOGRAMA,
-      ROW_NUMBER() OVER (
-        PARTITION BY O.COD_CONTRATO, O.COD_EMP, O.DATA_INI_ORG, O.EDICAO_ORG_3
-        ORDER BY NVL(O.DATA_FIM_ORG, DATE '2999-12-31') DESC, O.COD_ORGANOGRAMA
-      ) AS RN_DEDUP
-  FROM VH_EST_ORG_CONTRATO_AVT O
-  CROSS JOIN PARAM P
-  WHERE O.COD_EMP IS NOT NULL
-    AND O.EDICAO_ORG_3 IS NOT NULL
-    AND O.EDICAO_ORG_3 NOT IN ('157','173')
-    AND O.COD_CONTRATO IN (SELECT COD_CONTRATO FROM CONTRATOS_OK)
-    AND TRUNC(O.DATA_INI_ORG) < P.DT_CORTE
-),
-
-/* 2) Remove duplicidade exata */
-ORG_BASE AS (
-  SELECT *
-  FROM ORG_RAW
-  WHERE RN_DEDUP = 1
-),
-
-/* 3) Detecta mudança real (empresa ou filial) */
-ORG_CHANGES AS (
-  SELECT
-      B.*,
-      LAG(B.COD_EMP) OVER (
-        PARTITION BY B.COD_CONTRATO
-        ORDER BY B.DATA_INI_ORG,
-                 NVL(B.DATA_FIM_ORG, DATE '2999-12-31'),
-                 B.COD_ORGANOGRAMA
-      ) AS EMP_ANTERIOR,
-      LAG(B.CODIGO_NOVA_FILIAL) OVER (
-        PARTITION BY B.COD_CONTRATO
-        ORDER BY B.DATA_INI_ORG,
-                 NVL(B.DATA_FIM_ORG, DATE '2999-12-31'),
-                 B.COD_ORGANOGRAMA
-      ) AS FILIAL_ANTERIOR
-  FROM ORG_BASE B
-),
-
-/* 4) Mantém somente mudanças efetivas */
-ORG_MOV AS (
-  SELECT *
-  FROM ORG_CHANGES
-  WHERE EMP_ANTERIOR IS NULL
-     OR COD_EMP <> EMP_ANTERIOR
-     OR FILIAL_ANTERIOR IS NULL
-     OR CODIGO_NOVA_FILIAL <> FILIAL_ANTERIOR
-),
-
-/* 5) Garante 1 linha por (contrato, empresa, filial) */
-ORG_UNIQ AS (
-  SELECT *
-  FROM (
-    SELECT M.*,
-           ROW_NUMBER() OVER (
-             PARTITION BY M.COD_CONTRATO, M.COD_EMP, M.CODIGO_NOVA_FILIAL
-             ORDER BY M.DATA_INI_ORG,
-                      NVL(M.DATA_FIM_ORG, DATE '2999-12-31'),
-                      M.COD_ORGANOGRAMA
-           ) AS RN_UNIQ
-    FROM ORG_MOV M
-  )
-  WHERE RN_UNIQ = 1
-),
-
-/* 6) Empresa de admissão (para tipo_admissao_colaborador) */
-EMPRESA_REF AS (
-  SELECT
-      X.COD_CONTRATO,
-      MIN(X.COD_EMP) KEEP (
-        DENSE_RANK FIRST ORDER BY X.DATA_INI_ORG, X.COD_ORGANOGRAMA
-      ) AS EMPRESA_ADMISSAO
-  FROM ORG_BASE X
-  GROUP BY X.COD_CONTRATO
-),
-
-/* 7) Dados canônicos do contrato */
-CT_CANON AS (
-  SELECT COD_CONTRATO,
-         CASE WHEN COD_TIPO_ADMISSAO = 5 THEN 6 ELSE COD_TIPO_ADMISSAO END AS TIPO_ADMISSAO,
-         NUM_FICHA_REGISTRO
-  FROM (
-    SELECT C.*,
-           ROW_NUMBER() OVER (
-             PARTITION BY C.COD_CONTRATO
-             ORDER BY
-               CASE WHEN C.NUM_FICHA_REGISTRO IS NOT NULL THEN 0 ELSE 1 END,
-               CASE WHEN C.DATA_FIM_FICHA = DATE '2999-12-31' THEN 0 ELSE 1 END,
-               NVL(C.DATA_FIM_FICHA, DATE '1900-01-01') DESC,
-               NVL(C.DATA_INI_FICHA, DATE '1900-01-01') DESC
-           ) RN
+/* 0) Contratos válidos: admitidos antes da data de corte */
+CONTRATOS_VALIDOS AS (
+    SELECT C.COD_CONTRATO
     FROM V_DADOS_CONTRATO_AVT C
-    WHERE C.COD_CONTRATO IN (SELECT DISTINCT COD_CONTRATO FROM ORG_UNIQ)
-  )
-  WHERE RN = 1
+    CROSS JOIN PARAMETROS P
+    GROUP BY C.COD_CONTRATO, P.DT_CORTE
+    HAVING MIN(TRUNC(C.DATA_ADMISSAO)) < P.DT_CORTE
+),
+
+/* 1) Base principal da view.
+      Não filtrar COD_NIVEL_ORG, pois o colaborador pode estar alocado em nível 4, 5 ou 6.
+      A filial correta para o arquivo vem da EDICAO_ORG_3. */
+BASE_ORGANOGRAMA AS (
+    SELECT
+        V.COD_EMP,
+        V.DES_EMP,
+        V.COD_CONTRATO,
+        V.NOME_PESSOA,
+        TRUNC(V.DATA_INI_ORG) AS DATA_INI_ORG,
+        TRUNC(V.DATA_FIM_ORG) AS DATA_FIM_ORG,
+        V.COD_ORGANOGRAMA,
+        V.DES_UNIDADE  AS CENTRO_CUSTO,
+        V.EDICAO_ORG_3 AS COD_FILIAL,
+        V.NOME3        AS NOME_FILIAL,
+        V.COD_NIVEL_ORG
+    FROM VH_EST_ORG_CONTRATO_AVT V
+    WHERE V.COD_EMP IS NOT NULL
+      AND V.EDICAO_ORG_3 IS NOT NULL
+      AND V.EDICAO_ORG_3 NOT IN ('157', '173')
+
+      /* Data corte somente pela admissão do colaborador */
+      AND EXISTS (
+          SELECT 1
+          FROM CONTRATOS_VALIDOS CV
+          WHERE CV.COD_CONTRATO = V.COD_CONTRATO
+      )
+
+      -- Filtro para teste:
+      -- AND V.COD_CONTRATO IN (388606, 389622)
+),
+
+/* 2) Remove apenas duplicidade técnica da própria view.
+      Se vier mais de uma linha para a mesma empresa/filial/data,
+      prioriza o nível 3 quando existir, mas sem filtrar os demais níveis. */
+BASE_SEM_DUPLICIDADE_TECNICA AS (
+    SELECT
+        COD_EMP,
+        DES_EMP,
+        COD_CONTRATO,
+        NOME_PESSOA,
+        DATA_INI_ORG,
+        DATA_FIM_ORG,
+        COD_ORGANOGRAMA,
+        CENTRO_CUSTO,
+        COD_FILIAL,
+        NOME_FILIAL,
+        COD_NIVEL_ORG
+    FROM (
+        SELECT
+            B.*,
+            ROW_NUMBER() OVER (
+                PARTITION BY
+                    B.COD_CONTRATO,
+                    B.COD_EMP,
+                    B.DATA_INI_ORG,
+                    B.DATA_FIM_ORG,
+                    B.COD_FILIAL
+                ORDER BY
+                    CASE
+                        WHEN B.COD_NIVEL_ORG = 3 THEN 1
+                        WHEN B.COD_NIVEL_ORG = 4 THEN 2
+                        WHEN B.COD_NIVEL_ORG = 5 THEN 3
+                        WHEN B.COD_NIVEL_ORG = 6 THEN 4
+                        ELSE 9
+                    END,
+                    B.COD_ORGANOGRAMA
+            ) AS RN_TECNICO
+        FROM BASE_ORGANOGRAMA B
+    )
+    WHERE RN_TECNICO = 1
+),
+
+/* 3) Identifica filial e empresa anteriores na sequência cronológica */
+BASE_COM_MOVIMENTO_ANTERIOR AS (
+    SELECT
+        B.*,
+
+        LAG(B.COD_FILIAL) OVER (
+            PARTITION BY B.COD_CONTRATO
+            ORDER BY
+                B.DATA_INI_ORG,
+                NVL(B.DATA_FIM_ORG, DATE '2999-12-31'),
+                B.COD_ORGANOGRAMA
+        ) AS COD_FILIAL_ANTERIOR,
+
+        LAG(B.COD_EMP) OVER (
+            PARTITION BY B.COD_CONTRATO
+            ORDER BY
+                B.DATA_INI_ORG,
+                NVL(B.DATA_FIM_ORG, DATE '2999-12-31'),
+                B.COD_ORGANOGRAMA
+        ) AS COD_EMP_ANTERIOR
+
+    FROM BASE_SEM_DUPLICIDADE_TECNICA B
+),
+
+/* 4) Mantém apenas movimentos reais de filial.
+      Regra principal:
+      - primeira linha do contrato: mantém;
+      - mudou de filial: mantém;
+      - mudou de empresa: mantém, mesmo que o código da filial seja igual;
+      - mesma empresa + mesma filial em sequência: remove;
+      - se foi e voltou depois para a mesma filial: mantém, pois a filial anterior será diferente. */
+MOVIMENTOS_REAIS_FILIAL AS (
+    SELECT *
+    FROM BASE_COM_MOVIMENTO_ANTERIOR
+    WHERE COD_FILIAL_ANTERIOR IS NULL
+       OR COD_FILIAL <> COD_FILIAL_ANTERIOR
+       OR COD_EMP <> COD_EMP_ANTERIOR
+),
+
+/* 5) Recalcula empresa anterior considerando apenas os movimentos reais */
+MOVIMENTOS_COM_EMPRESA_ANT AS (
+    SELECT
+        M.*,
+        LAG(M.COD_EMP) OVER (
+            PARTITION BY M.COD_CONTRATO
+            ORDER BY
+                M.DATA_INI_ORG,
+                NVL(M.DATA_FIM_ORG, DATE '2999-12-31'),
+                M.COD_ORGANOGRAMA
+        ) AS COD_EMP_ANT_MOVIMENTO
+    FROM MOVIMENTOS_REAIS_FILIAL M
+),
+
+/* 6) Marca novo segmento de empresa.
+      Segmento 1 = admissão.
+      Segmento 2 em diante = transferência de empresa. */
+MOVIMENTOS_MARCADOS AS (
+    SELECT
+        M.*,
+        CASE
+            WHEN M.COD_EMP_ANT_MOVIMENTO IS NULL THEN 1
+            WHEN M.COD_EMP <> M.COD_EMP_ANT_MOVIMENTO THEN 1
+            ELSE 0
+        END AS FLAG_NOVO_SEGMENTO_EMPRESA
+    FROM MOVIMENTOS_COM_EMPRESA_ANT M
+),
+
+/* 7) Numera os segmentos de empresa */
+MOVIMENTOS_SEGMENTADOS AS (
+    SELECT
+        M.*,
+        SUM(M.FLAG_NOVO_SEGMENTO_EMPRESA) OVER (
+            PARTITION BY M.COD_CONTRATO
+            ORDER BY
+                M.DATA_INI_ORG,
+                NVL(M.DATA_FIM_ORG, DATE '2999-12-31'),
+                M.COD_ORGANOGRAMA
+            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+        ) AS NR_SEGMENTO_EMPRESA
+    FROM MOVIMENTOS_MARCADOS M
+),
+
+/* 8) Filial atual do contrato.
+      Não depende de DATA_FIM_ORG = 31/12/2999.
+      Pega o último movimento real do contrato dentro da view. */
+FILIAL_ATUAL AS (
+    SELECT *
+    FROM (
+        SELECT
+            M.*,
+            ROW_NUMBER() OVER (
+                PARTITION BY M.COD_CONTRATO
+                ORDER BY
+                    M.DATA_INI_ORG DESC,
+                    NVL(M.DATA_FIM_ORG, DATE '2999-12-31') DESC,
+                    M.COD_ORGANOGRAMA DESC
+            ) AS RN_ATUAL
+        FROM MOVIMENTOS_SEGMENTADOS M
+    )
+    WHERE RN_ATUAL = 1
+),
+
+/* 9) Histórico anterior:
+      todos os movimentos reais que não são o último movimento do contrato.
+
+      Importante:
+      Aqui NÃO remove mais a mesma filial da atual.
+      Exemplo 052 -> 606 -> 052:
+      deve retornar 052 e 606 conforme as datas/movimentos reais. */
+FILIAL_ANTERIOR AS (
+    SELECT M.*
+    FROM MOVIMENTOS_SEGMENTADOS M
+    JOIN FILIAL_ATUAL A
+      ON A.COD_CONTRATO = M.COD_CONTRATO
+    WHERE NOT (
+            M.COD_EMP         = A.COD_EMP
+        AND M.DATA_INI_ORG    = A.DATA_INI_ORG
+        AND NVL(M.DATA_FIM_ORG, DATE '2999-12-31') = NVL(A.DATA_FIM_ORG, DATE '2999-12-31')
+        AND M.COD_FILIAL      = A.COD_FILIAL
+        AND M.COD_ORGANOGRAMA = A.COD_ORGANOGRAMA
+    )
+),
+
+/* 10) Resultado tratado */
+RESULTADO_FILIAL AS (
+    SELECT
+        F.COD_EMP,
+        F.DES_EMP,
+        F.COD_CONTRATO,
+        F.NOME_PESSOA,
+        F.DATA_INI_ORG,
+        F.DATA_FIM_ORG,
+        F.COD_ORGANOGRAMA,
+        F.CENTRO_CUSTO,
+        F.COD_FILIAL,
+        F.NOME_FILIAL,
+        F.NR_SEGMENTO_EMPRESA,
+        1 AS ORDEM_REGISTRO
+    FROM FILIAL_ANTERIOR F
+
+    UNION ALL
+
+    SELECT
+        A.COD_EMP,
+        A.DES_EMP,
+        A.COD_CONTRATO,
+        A.NOME_PESSOA,
+        A.DATA_INI_ORG,
+        A.DATA_FIM_ORG,
+        A.COD_ORGANOGRAMA,
+        A.CENTRO_CUSTO,
+        A.COD_FILIAL,
+        A.NOME_FILIAL,
+        A.NR_SEGMENTO_EMPRESA,
+        2 AS ORDEM_REGISTRO
+    FROM FILIAL_ATUAL A
+),
+
+/* 11) Dados canônicos do contrato */
+DADOS_CONTRATO AS (
+    SELECT
+        COD_CONTRATO,
+        CASE
+            WHEN COD_TIPO_ADMISSAO = 5 THEN 6
+            ELSE COD_TIPO_ADMISSAO
+        END AS TIPO_ADMISSAO,
+        NUM_FICHA_REGISTRO
+    FROM (
+        SELECT
+            C.*,
+            ROW_NUMBER() OVER (
+                PARTITION BY C.COD_CONTRATO
+                ORDER BY
+                    CASE WHEN C.NUM_FICHA_REGISTRO IS NOT NULL THEN 0 ELSE 1 END,
+                    CASE WHEN C.DATA_FIM_FICHA = DATE '2999-12-31' THEN 0 ELSE 1 END,
+                    NVL(C.DATA_FIM_FICHA, DATE '1900-01-01') DESC,
+                    NVL(C.DATA_INI_FICHA, DATE '1900-01-01') DESC
+            ) AS RN
+        FROM V_DADOS_CONTRATO_AVT C
+        WHERE C.COD_CONTRATO IN (
+            SELECT DISTINCT COD_CONTRATO
+            FROM RESULTADO_FILIAL
+        )
+    )
+    WHERE RN = 1
 )
 
 /* =========================
-   SELECT FINAL
+   SELECT FINAL - FORMATO OFICIAL 1021
    ========================= */
 SELECT
-    /* empresa vigente na data da alteração */
-    U.COD_EMP AS "codigo_empresa",
+    R.COD_EMP AS "codigo_empresa",
     1 AS "tipo_colaborador",
-    U.COD_CONTRATO AS "cadastro_colaborador",
-    TO_CHAR(U.DATA_INI_ORG, 'DD/MM/YYYY') AS "data_alteracao",
+    R.COD_CONTRATO AS "cadastro_colaborador",
+    TO_CHAR(R.DATA_INI_ORG, 'DD/MM/YYYY') AS "data_alteracao",
 
-    /* >>> regra aplicada <<< */
-    U.COD_EMP AS "codigo_nova_empresa",
+    /* Empresa correta no momento da filial */
+    R.COD_EMP AS "codigo_nova_empresa",
 
-    U.COD_CONTRATO AS "codigo_novo_cadastro",
-    U.CODIGO_NOVA_FILIAL AS "codigo_nova_filial",
+    R.COD_CONTRATO AS "codigo_novo_cadastro",
+    R.COD_FILIAL AS "codigo_nova_filial",
 
-    C.TIPO_ADMISSAO AS "tipo_admissao",
-    NVL(C.NUM_FICHA_REGISTRO, 0) AS "numero_ficha_registro",
+    DC.TIPO_ADMISSAO AS "tipo_admissao",
+    NVL(DC.NUM_FICHA_REGISTRO, 0) AS "numero_ficha_registro",
 
     CASE
-        WHEN U.COD_EMP = ER.EMPRESA_ADMISSAO THEN 1
+        WHEN R.NR_SEGMENTO_EMPRESA = 1 THEN 1
         ELSE 2
     END AS "tipo_admissao_colaborador"
 
-FROM ORG_UNIQ U
-LEFT JOIN CT_CANON C
-  ON C.COD_CONTRATO = U.COD_CONTRATO
-JOIN EMPRESA_REF ER
-  ON ER.COD_CONTRATO = U.COD_CONTRATO
-WHERE U.COD_CONTRATO > 0-- = 352683,392628  -- remova para todos
-ORDER BY U.COD_CONTRATO, U.DATA_INI_ORG;
+FROM RESULTADO_FILIAL R
+LEFT JOIN DADOS_CONTRATO DC
+  ON DC.COD_CONTRATO = R.COD_CONTRATO
+WHERE R.COD_CONTRATO > 0
+ --AND R.COD_CONTRATO IN (388606, 389622, 352683, 377298)
+ORDER BY
+    R.COD_CONTRATO,
+    R.DATA_INI_ORG,
+    R.ORDEM_REGISTRO,
+    R.COD_EMP,
+    R.COD_FILIAL;
+
 
 
 
@@ -329,7 +323,7 @@ ORDER BY U.COD_CONTRATO, U.DATA_INI_ORG;
 
 
 
-/*==== VERSÃO 3 ALTERNATIVA - OFICIAL - TRATANDO CASOS DE PING PONG - 
+/*==== VERSÃO 2 ALTERNATIVA - OFICIAL - TRATANDO CASOS DE PING PONG - 
        ALTERAÇÕES DIFERENTES MAS MESMA FILIAL===*/
 
 /* == SQL 1021 - HISTORICO DE FILIAL ==
